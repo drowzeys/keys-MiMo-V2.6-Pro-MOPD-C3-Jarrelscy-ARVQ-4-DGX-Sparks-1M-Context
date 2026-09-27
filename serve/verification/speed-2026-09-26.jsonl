@@ -132,3 +132,34 @@
 {"label": "v4-final-oneshot-k2", "kind": "concurrent", "requests": 4, "aggregate_tps": 47.97, "per_request_tps": 11.99, "wall_s": 43.0}
 {"label": "v4-final-oneshot-k2", "kind": "prefill", "prompt_tokens": 9535, "ttft_s": 10.19, "prefill_tps": 935.7}
 {"label": "v4-final-oneshot-k2", "kind": "prefill", "prompt_tokens": 38045, "ttft_s": 37.5, "prefill_tps": 1014.4}
+{"label": "v4-dualrail-k2", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.328, "decode_tps": 21.26, "tokens_per_pass": 1.796}
+{"label": "v4-dualrail-k2", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.259, "decode_tps": 22.86, "tokens_per_pass": 1.928}
+{"label": "v4-dualrail-k2", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.31, "decode_tps": 21.96, "tokens_per_pass": 1.865}
+{"label": "v4-dualrail-k2", "kind": "prose_mean", "decode_tps": 22.03, "tokens_per_pass": 1.861, "per_position_acceptance": {"0": 0.603, "1": 0.258}}
+{"label": "v4-dualrail-k2", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.28, "decode_tps": 31.48, "tokens_per_pass": 2.709}
+{"label": "v4-dualrail-k2", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.299, "decode_tps": 29.23, "tokens_per_pass": 2.502}
+{"label": "v4-dualrail-k2", "kind": "code_mean", "decode_tps": 30.36, "tokens_per_pass": 2.601, "per_position_acceptance": {"0": 0.865, "1": 0.736}}
+{"label": "v4-dualrail-k2", "kind": "concurrent", "requests": 4, "aggregate_tps": 47.09, "per_request_tps": 11.77, "wall_s": 43.8}
+{"label": "v4-dualrail-k2", "kind": "prefill", "prompt_tokens": 9535, "ttft_s": 8.16, "prefill_tps": 1168.5}
+{"label": "v4-dualrail-k2", "kind": "prefill", "prompt_tokens": 38044, "ttft_s": 33.03, "prefill_tps": 1151.9}
+{"label": "oprojfp8-dualpcie-k2", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.309, "decode_tps": 24.92, "tokens_per_pass": 1.925}
+{"label": "oprojfp8-dualpcie-k2", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.228, "decode_tps": 24.67, "tokens_per_pass": 1.893}
+{"label": "oprojfp8-dualpcie-k2", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.306, "decode_tps": 25.09, "tokens_per_pass": 1.918}
+{"label": "oprojfp8-dualpcie-k2", "kind": "prose_mean", "decode_tps": 24.89, "tokens_per_pass": 1.911, "per_position_acceptance": {"0": 0.635, "1": 0.276}}
+{"label": "oprojfp8-dualpcie-k2", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.316, "decode_tps": 34.57, "tokens_per_pass": 2.695}
+{"label": "oprojfp8-dualpcie-k2", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.315, "decode_tps": 33.68, "tokens_per_pass": 2.626}
+{"label": "oprojfp8-dualpcie-k2", "kind": "code_mean", "decode_tps": 34.12, "tokens_per_pass": 2.66, "per_position_acceptance": {"0": 0.886, "1": 0.774}}
+{"label": "oprojfp8-dualpcie-k2", "kind": "concurrent", "requests": 4, "aggregate_tps": 48.12, "per_request_tps": 12.03, "wall_s": 42.9}
+{"label": "oprojfp8-dualpcie-k2", "kind": "prefill", "prompt_tokens": 9534, "ttft_s": 8.91, "prefill_tps": 1069.5}
+{"label": "oprojfp8-dualpcie-k2", "kind": "prefill", "prompt_tokens": 38043, "ttft_s": 35.11, "prefill_tps": 1083.5}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.325, "decode_tps": 24.64, "tokens_per_pass": 1.9}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.241, "decode_tps": 24.2, "tokens_per_pass": 1.872}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.282, "decode_tps": 24.68, "tokens_per_pass": 1.893}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "prose_mean", "decode_tps": 24.51, "tokens_per_pass": 1.888, "per_position_acceptance": {"0": 0.595, "1": 0.293}}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.277, "decode_tps": 34.35, "tokens_per_pass": 2.695}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.305, "decode_tps": 33.87, "tokens_per_pass": 2.639}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "code_mean", "decode_tps": 34.11, "tokens_per_pass": 2.666, "per_position_acceptance": {"0": 0.893, "1": 0.773}}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "concurrent", "requests": 2, "aggregate_tps": 36.0, "per_request_tps": 18.0, "wall_s": 28.8}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "concurrent", "requests": 4, "aggregate_tps": 48.48, "per_request_tps": 12.12, "wall_s": 42.5}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "prefill", "prompt_tokens": 9535, "ttft_s": 10.03, "prefill_tps": 950.6}
+{"label": "v4-oprojfp8-dualpcie-permanent", "kind": "prefill", "prompt_tokens": 38042, "ttft_s": 36.15, "prefill_tps": 1052.4}

@@ -16,6 +16,11 @@
 #   enable_thinking false (the template enables thinking when the kwarg is unset).
 # Request values always override these.
 #
+# NCCL_IB_HCA lists BOTH RoCE devices of the one cabled CX-7 port. GB10 exposes
+# that port as two PCIe functions (rocep1s0f1 and roceP2p1s0f1); NCCL on one of
+# them is PCIe-limited. Using both raised all-reduce bandwidth ~23% and prefill
+# 14-25%. Check yours with `ibdev2netdev` (both should show the same port Up).
+#
 # Rank 0 uses mode api. The other three use headless. Start ranks 1-3 first.
 # GPU memory fraction is fixed at 0.85.
 set -euo pipefail
@@ -81,7 +86,7 @@ exec docker run -d --name "$NAME" \
   -e TOKENIZERS_PARALLELISM=false \
   -e NCCL_NET=IB \
   -e NCCL_IB_DISABLE=0 \
-  -e NCCL_IB_HCA="${NCCL_IB_HCA:-rocep1s0f1}" \
+  -e NCCL_IB_HCA="${NCCL_IB_HCA:-rocep1s0f1,roceP2p1s0f1}" \
   -e NCCL_SOCKET_IFNAME="${NCCL_SOCKET_IFNAME:-enp1s0f1np1}" \
   -e GLOO_SOCKET_IFNAME="${NCCL_SOCKET_IFNAME:-enp1s0f1np1}" \
   -e TP_SOCKET_IFNAME="${NCCL_SOCKET_IFNAME:-enp1s0f1np1}" \

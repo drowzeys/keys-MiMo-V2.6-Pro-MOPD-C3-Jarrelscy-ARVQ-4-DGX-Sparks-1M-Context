@@ -1,0 +1,3 @@
+{"label": "bf16-oproj", "rows": 60, "tokens": 53575, "mean_nll": 0.44429, "per_class": {"code": 0.24345, "list": 0.36679, "reason": 0.11965, "prose": 0.65228, "essay": 0.64604}}
+{"label": "fp8-oproj", "rows": 60, "tokens": 53575, "mean_nll": 0.44552, "per_class": {"code": 0.24362, "list": 0.36847, "reason": 0.11599, "prose": 0.65489, "essay": 0.64562}}
+{"label": "fp8-oproj-permanent", "rows": 20, "tokens": 13599, "mean_nll": 0.57764, "per_class": {"code": 0.30616, "list": 0.36629, "reason": 0.1207, "prose": 0.72906, "essay": 0.70264}}

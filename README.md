@@ -6,11 +6,11 @@ Gated weights (automatic approval after terms): **[drowzeys/keys-MiMo-V2.6-Pro-R
 
 The launcher enables MiMo tool calling on the server (`--enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo`). Hermes then **executes** those calls (`write_file`, `terminal`, `execute_code`, `read_file`, …) so a prompt can write a project, run it, and iterate. See [HERMES.md](HERMES.md) and [`serve/verify-tools-and-build.sh`](serve/verify-tools-and-build.sh).
 
-## Current status — 2026-09-27 UTC (image v4)
+## Current status — 2026-09-27 UTC (image v4 + FP8 o_proj weights)
 
-- **Decode: ~30 tok/s on code, 21.8 tok/s on prose**, single stream. That's up from 18.6 prose on the old eager build.
+- **Decode: 34.1 tok/s on code, 24.5 tok/s on prose**, single stream (up from 18.6 prose on the old eager build). The latest step is FP8 attention `o_proj` weights: +12% decode with NLL +0.28%. See [SPARK-PORT.md §9](SPARK-PORT.md#9-attention-o_proj-in-fp8-weights-update-2026-09-27).
 - **All three MTP draft heads now run**, non-chain, in the V2 runner. Before v4, only head 0 ever drafted. On code, drafting accepts 2.6 tokens per pass at k=2 and 3.2–3.35 at k=3.
-- **Prefill: 1,038–1,291 tok/s** (was 128). 38K-token time to first token: **36.6 s** (was 302 s).
+- **Prefill: ~950–1,290 tok/s** (was 128). 38K-token time to first token: **~36 s** (was 302 s). NCCL now drives both PCIe paths of the one cabled CX-7 port; see [SPARK-PORT.md §10](SPARK-PORT.md#10-nccl-over-both-pcie-paths-of-the-cabled-cx-7-port-2026-09-27).
 - **✅ Tool-call loop fixed.** Truncated tool batches return `finish_reason: "length"`, and the output cap is 8192. See [HERMES.md](HERMES.md#fixed-2026-09-26-never-ending-tool-call-loop).
 - **Safer defaults for clients that send nothing** (for example Pi): temperature 0.7 and thinking off unless requested. See [Clients](#clients).
 - **[Abliteration](ABLITERATION.md):** live `dealign-op` tree. Thinking **off** **32/32** refusal and **22/22** cyber; thinking **on** 25/32 and 16/22 (visible content). Gated HF: [drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated).
@@ -60,16 +60,18 @@ Measured KV pool on the champion boot: about **2.07M tokens** (three MTP heads n
 
 | Draft tokens | **Prose** | **Code** | Prose tokens/pass | Code tokens/pass |
 |---:|---:|---:|---:|---:|
-| **2 (default)** | **21.8 tok/s** | **30.9 tok/s** | 1.83 | 2.64 |
-| 3 | 19.9 tok/s | 32.3–34.0 tok/s | 1.93 | 3.19–3.35 |
+| **2 (default), FP8 o_proj weights** | **24.5 tok/s** | **34.1 tok/s** | 1.89 | 2.67 |
+| 2, BF16 o_proj (weights before 2026-09-27) | 21.8 tok/s | 30.9 tok/s | 1.83 | 2.64 |
+| 3, BF16 o_proj | 19.9 tok/s | 32.3–34.0 tok/s | 1.93 | 3.19–3.35 |
 | old build (head 0 only, k=2) | 20.4 tok/s | — | 1.82 | — |
 
 Requests overlapped (`max_num_seqs 4`), MTP=2, prose:
 
 | Requests | Aggregate | Per request |
 |---:|---:|---:|
-| 1 | 21.8 tok/s | 21.8 tok/s |
-| 4 | **46.6 tok/s** | 11.6 tok/s |
+| 1 | 24.5 tok/s | 24.5 tok/s |
+| 2 | 36.0 tok/s | 18.0 tok/s |
+| 4 | **48.5 tok/s** | 12.1 tok/s |
 
 Creative stories at temperature 1.0 are the hardest text to predict. On ordinary held-out prose, the heads reach 2.32 tokens/pass at k=3 (0.67 / 0.41 / 0.24 per position), and code reaches 2.98.
 
@@ -77,11 +79,11 @@ Uncached prefill (nonce prompt, `max_tokens` 1):
 
 | Prompt | Old eager recipe | Grouped prefill (superseded) | **Now: batched prefill** | Time to first token, now |
 |---:|---:|---:|---:|---:|
-| 9.5K tokens | 128 tok/s | 505 tok/s | **1,291 tok/s** | **7.4 s** |
-| 38K tokens | 126 tok/s | 527 tok/s | **1,038 tok/s** | **36.6 s** |
+| 9.5K tokens | 128 tok/s | 505 tok/s | **951–1,291 tok/s** | **7.4–10.0 s** |
+| 38K tokens | 126 tok/s | 527 tok/s | **1,038–1,052 tok/s** | **~36 s** |
 | 152K tokens | — | — | 615 tok/s | 247 s |
 
-Prefill slows as prompts grow because the 10 full-attention layers grow with context length. Prefill comes from the batched ARVQ kernels; the v4 MTP change affects decode only.
+Prefill slows as prompts grow because the 10 full-attention layers grow with context length. The batched ARVQ kernels give the big prefill gain. Driving both CX-7 PCIe paths adds 14–25% on BF16 weights; FP8 `o_proj` gives some of that back at prefill, where the math is compute-bound, while speeding up decode by 12%. Single runs vary by roughly ±10% on GB10 (unified-memory page migration), so the table shows ranges.
 
 ## Image
 
@@ -118,7 +120,7 @@ bash serve/launch-rank.sh <this-node-IP> <1|2|3> <RoCE-GID-index> /path/to/mimo-
 bash serve/launch-rank.sh <this-node-IP> 0 <RoCE-GID-index> /path/to/mimo-arvq api
 ```
 
-The only per-node value is the **RoCE GID index**: the IPv4 RoCE entry for the HCA, from `show_gids`. It was 3 on three of our Sparks and 7 on one. For code-heavy use, add `SPEC='{"method":"mtp","num_speculative_tokens":3}'`. NCCL uses the 200G RoCE NIC (`NCCL_NET=IB`). See [SPARK-PORT.md](SPARK-PORT.md) for the port notes.
+`NCCL_IB_HCA` defaults to both RoCE devices of the cabled port (`rocep1s0f1,roceP2p1s0f1`). Check the names with `ibdev2netdev`: both should show the same port Up. The only per-node value you must set is the **RoCE GID index**: the IPv4 RoCE entry for the HCA, from `show_gids`. It was 3 on three of our Sparks and 7 on one. For code-heavy use, add `SPEC='{"method":"mtp","num_speculative_tokens":3}'`. NCCL uses the 200G RoCE NIC (`NCCL_NET=IB`). See [SPARK-PORT.md](SPARK-PORT.md) for the port notes.
 
 ## Integration and experiments
 

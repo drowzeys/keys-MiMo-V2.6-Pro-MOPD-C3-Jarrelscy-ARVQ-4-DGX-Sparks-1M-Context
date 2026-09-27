@@ -89,3 +89,43 @@ Accuracy of the batched path:
 - Greedy outputs on the cluster drift from the grouped build at tokens 31-53. That matches run-to-run drift within one boot (tokens 53-58), which comes from FP32 atomics and NCCL.
 
 Cluster result: 9.5K-token prefill goes from 505 to 1,291 tok/s, and 38K-token from 527 to 1,038 tok/s. All-reduce is now the largest prefill cost.
+
+## 9. Attention o_proj in FP8 (weights update, 2026-09-27)
+
+**What the profile showed.** A v4 decode step takes about 93 ms, and the GPU is busy about 98% of it, so the step is bound by memory bandwidth plus the TP4 all-reduces. The single largest item was the target's attention `o_proj`: about 17 ms per step, reading roughly 3.5 GB per rank of **BF16** weights.
+
+**Why it was BF16.** Xiaomi's `quantization_config.source_fp8.ignored_layers` lists every `model.layers.N.self_attn.o_proj`, so these layers stayed BF16 while `qkv_proj` is FP8.
+
+**The change.** All 70 decoder `o_proj` weights are quantized to FP8 e4m3 with 128x128 block scales, the same format as `qkv_proj`. The worst relative Frobenius error is 2.7%. The decoder entries are removed from `ignored_layers`; the MTP decoder `o_proj` stays BF16. `backbone-001` shrinks from 30.2 GB to 23.2 GB. Converter: `oproj-fp8/convert_oproj_fp8.py` in the campaign tree.
+
+**Quality gate.** Teacher-forced NLL over 60 held-out on-policy responses (53,575 tokens), on identical token sequences:
+
+| | BF16 o_proj | FP8 o_proj |
+|---|---:|---:|
+| mean NLL | 0.4443 | 0.4455 (+0.28%, perplexity x1.0012) |
+| per class | code 0.243, prose 0.652, reason 0.120 | code 0.244, prose 0.655, reason 0.116 |
+
+All 14 benign requests in the answer check were answered.
+
+**Speed (k=2):**
+
+| | BF16 o_proj | FP8 o_proj |
+|---|---:|---:|
+| prose | 22.0 tok/s | 24.9 tok/s (+13%) |
+| code | 30.4 tok/s | 34.1 tok/s (+12%) |
+
+## 10. NCCL over both PCIe paths of the cabled CX-7 port (2026-09-27)
+
+**Topology.** Each Spark has one CX-7 port cabled. Linux shows that single 200G port as **two RoCE devices**, `rocep1s0f1` and `roceP2p1s0f1`. They are the same port reached through two PCIe functions. The unplugged port's two devices show DOWN.
+
+**The problem.** With `NCCL_IB_HCA=rocep1s0f1` alone, NCCL's tuner modelled about 8 GB/s for ring all-reduce, and prefill all-reduces measured about 8-12 GB/s. That is well under line rate, because one PCIe path is the limit.
+
+**The fix.** `serve/launch-rank.sh` now defaults to `NCCL_IB_HCA=rocep1s0f1,roceP2p1s0f1`. NCCL then alternates channels over both devices (NET/IB/0 and NET/IB/1). No second cable is needed. Both devices had IPv4 RoCE v2 GIDs at the same index on each node, and each has its own subnet: 10.100.10.x and 10.100.11.x.
+
+**Result.**
+- Prefill all-reduce time dropped 23%.
+- Prefill was 14-25% faster: 9.5K tokens went from 936 to 1,169 tok/s, and 38K from 1,014 to 1,152 tok/s.
+- Decode did not change; its all-reduces are small and bound by latency.
+- `NCCL_PROTO=Simple` alone changed prefill all-reduce time by only about 10%.
+
+Note that the kernel name `ncclDevKernel_AllReduce_..._RING_LL` does not identify the protocol, because NCCL dispatches every protocol through a few generic kernels.
