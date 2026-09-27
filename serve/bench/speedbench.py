@@ -4,6 +4,7 @@
 prose:   three stories x 512 tokens, temperature 1.0, top_p 0.95, thinking off,
          one request at a time. Reports decode tok/s, tokens per pass, and the
          per-position MTP acceptance from /metrics.
+code:    two coding tasks, same settings; reported separately.
 conc:    the same stories sent 2 and 4 at a time; aggregate decode tok/s.
 prefill: nonce-prefixed filler (nothing cached), max_tokens 1; TTFT and
          prompt tokens per second.
@@ -21,6 +22,10 @@ PROMPTS = {
     "beekeeper": "Write a vivid literary short story (at least 700 words) about a beekeeper during a drought. No headings, flowing prose only.",
     "lighthouse": "Write a vivid literary short story (at least 700 words) about a lighthouse keeper in 1890s Norway. No headings, flowing prose only.",
     "nurse": "Write a vivid literary short story (at least 700 words) about a night-shift nurse in Lagos. No headings, flowing prose only.",
+}
+CODE = {
+    "rbtree": "Write a complete Python implementation of a red-black tree with insert, delete, search and in-order iteration, with docstrings and type hints. Code only.",
+    "lexer": "Write a complete Python tokenizer and recursive-descent parser for arithmetic expressions with variables, functions and operator precedence, plus a small evaluator. Code only.",
 }
 FILLER = (
     "The river bent twice before the mill, and the miller counted sacks by "
@@ -93,23 +98,25 @@ def main():
 
     stream(a.base, a.model, "Say hi.", 8, 0.0, 1)  # warm-up
 
-    tps = []
-    d0, p0 = spec_counters(a.base)
-    for i, (name, text) in enumerate(PROMPTS.items()):
-        dd0, pp0 = spec_counters(a.base)
-        t0, first, last, usage = stream(a.base, a.model, text, 512, 1.0, 1729 + i)
-        dd1, pp1 = spec_counters(a.base)
-        n = usage.get("completion_tokens", 0)
-        drafts = dd1 - dd0
-        acc = sum(pp1.values()) - sum(pp0.values())
-        tps.append((n - 1) / (last - first))
-        emit({"kind": "prose", "task": name, "tokens": n, "ttft_s": round(first - t0, 3),
-              "decode_tps": round(tps[-1], 2),
-              "tokens_per_pass": round(1 + acc / drafts, 3) if drafts else 1.0})
-    d1, p1 = spec_counters(a.base)
-    drafts = d1 - d0
-    per_pos = {k: round((p1.get(k, 0) - p0.get(k, 0)) / drafts, 3) for k in sorted(p1)} if drafts else {}
-    emit({"kind": "prose_mean", "decode_tps": round(sum(tps) / len(tps), 2), "per_position_acceptance": per_pos})
+    for kind, tasks in (("prose", PROMPTS), ("code", CODE)):
+        tps = []
+        d0, p0 = spec_counters(a.base)
+        for i, (name, text) in enumerate(tasks.items()):
+            dd0, pp0 = spec_counters(a.base)
+            t0, first, last, usage = stream(a.base, a.model, text, 512, 1.0, 1729 + i)
+            dd1, pp1 = spec_counters(a.base)
+            n = usage.get("completion_tokens", 0)
+            drafts = dd1 - dd0
+            acc = sum(pp1.values()) - sum(pp0.values())
+            tps.append((n - 1) / (last - first))
+            emit({"kind": kind, "task": name, "tokens": n, "ttft_s": round(first - t0, 3),
+                  "decode_tps": round(tps[-1], 2),
+                  "tokens_per_pass": round(1 + acc / drafts, 3) if drafts else 1.0})
+        d1, p1 = spec_counters(a.base)
+        drafts = d1 - d0
+        per_pos = {k: round((p1.get(k, 0) - p0.get(k, 0)) / drafts, 3) for k in sorted(p1)} if drafts else {}
+        emit({"kind": f"{kind}_mean", "decode_tps": round(sum(tps) / len(tps), 2),
+              "tokens_per_pass": round(1 + sum(per_pos.values()), 3), "per_position_acceptance": per_pos})
 
     names = list(PROMPTS)
     for level in [int(x) for x in a.conc.split(",") if x]:

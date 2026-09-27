@@ -1,9 +1,10 @@
-# ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v3 (also :latest)
+# ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v4 (also :latest)
 # The only supported image. Pull it; rebuild only if you must.
 #
 # On top of the ARVQ base (Dockerfile.base):
 #   mimo_v2.py            Spark loader fixes; ablit capture hooks gated at import
-#   mimo_v2_mtp.py        all three MTP heads, non-chain multi-layer propose
+#   mimo_v2_mtp.py        all three MTP heads, non-chain, on V2 MTPSpeculator
+#                         (heads 1..K-1 run inside the draft-prefill CUDA graph)
 #   speculative.py        routes multi-layer MiMo MTP to the per-step proposer
 #   chat_serving.py       keeps finish_reason "length" on truncated tool batches
 #   nvfp4_arvq_hybrid.py  + nvfp4_arvq_batched_prefill.py + grouped.cu:

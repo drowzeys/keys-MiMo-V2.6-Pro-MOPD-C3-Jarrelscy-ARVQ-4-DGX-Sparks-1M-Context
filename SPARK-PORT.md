@@ -32,24 +32,29 @@ Expert parallelism is unsupported in this quant method. The serve is TP4 only. E
 
 `NCCL_NET=IB` on the 200G NIC. During one short generation each node's RoCE transmit counter moved by tens of mebibytes while the TCP counters on that NIC moved kilobytes. The GID index is per node: an index that is correct on three Sparks was wrong on the fourth.
 
-## 6. All three MTP heads, non-chain (2026-09-26)
+## 6. All three MTP heads, non-chain, on the V2 runner (image v4, 2026-09-27)
 
-The checkpoint ships three MTP heads (`model.mtp.layers.0-2`), one per draft step. Xiaomi's recommended SGLang deploy runs them as multi-layer EAGLE. The fork hardcoded `num_mtp_layers = 1` and skipped loading heads 1-2 without a warning, so every draft step re-ran head 0.
+The checkpoint ships three MTP heads (`model.mtp.layers.0-2`), one per draft step. Xiaomi's SGLang deploy runs them as multi-layer EAGLE in **non-chain** mode (`multi_layer_eagle_worker_v2`): every head reads the **target's** hidden state `h[i]` and the token `x[i+1+k]` at position `i`.
 
-The published image fixes this in three places:
+**What was wrong.** This vLLM fork runs **Model Runner V2**. Its `MTPSpeculator`, inherited from `AutoRegressiveSpeculator`, drafts step 0 over the verified span. It then drafts steps 1.. as one-token decodes that feed the previous step's output hidden state back in, and it never passes `spec_step_idx`, so **head 0 ran every draft step**. Earlier images also built only one head. Live per-position acceptance on prose was about 0.61 / 0.20 / 0.05: heads 1-2 had never run. (A V1-runner proposer patch in image v2/v3 was dead code on this runner.)
 
-- `mimo_v2_mtp.py` builds `n_predict` heads (`MIMO_MTP_LAYERS`, default 3 in the image). The count comes from `speculative_config.draft_model_config.hf_config`. Inside the drafter, `vllm_config.model_config` is the target's config, so reading it there silently yields 1.
-- `speculative.py` routes multi-layer MiMo MTP to the per-step proposer.
-- `mimo_v2_mtp.py` replaces that proposer's `propose()` for MiMo with **non-chain** semantics, which match SGLang's `multi_layer_eagle_worker_v2` for MiMo. Every head runs over the whole new-token span with the **target's** hidden states and the same positions. Only the token ids shift by one, with the previous head's draft in the last slot. So each head fills its own KV cache. The Step3.5 chain style, which feeds head k's output hidden into head k+1 on a single token, is wrong for MiMo.
+**Fix, in image v4 (`mimo_v2_mtp.py`).**
+- **Build.** `MIMO_MTP_LAYERS=3` builds all three heads.
+- **Routing.** On `MTPSpeculator` only, the draft prefill runs head 0 unchanged, then heads 1..K-1 over the same span. They use the saved target hidden states, the same positions, attention metadata and slots, input ids rotated left once per head, and head (k-1)'s draft in each request's last valid slot. `propose()` then skips the chained decode steps. All K drafts come out of the draft-prefill routine, so V2's FULL draft-prefill CUDA graph captures every head.
+- **Count.** The number of heads comes from `speculative_config.draft_model_config.hf_config.n_predict`. Inside the drafter, `vllm_config.model_config` is the target's config.
 
-Measured greedy per-position acceptance on prose:
+**Verification.** On-policy data was captured, and the heads were re-implemented in plain PyTorch (`dflash-ft/train/mtp_ref.py`) and simulated step by step. On the same 12 held-out prompts, live now matches the simulation:
 
-| Target | pos 0 | pos 1 | pos 2 | tokens/pass (k=3) |
+| Same prompts | pos 0 | pos 1 | pos 2 | tokens/pass (k=3) |
 |---|---:|---:|---:|---:|
-| Stock ARVQ `63430f7` | 0.75 | 0.30 | 0.07 | 2.12 |
-| Abliterated `dealign-op` | 0.67 | 0.25 | 0.05 | 1.97 |
+| prose, live v4 | 0.666 | 0.405 | 0.244 | 2.32 |
+| prose, simulation | 0.680 | 0.420 | 0.262 | 2.36 |
+| code, live v4 | 0.806 | 0.658 | 0.516 | 2.98 |
+| code, simulation | 0.846 | 0.709 | 0.574 | 3.13 |
 
-Heads 1-2 are weak on both trees. ARVQ quantization and the `o_proj` edits moved the hidden state the heads consume. On sampled prose, k=2 is still the champion until the heads are fine-tuned on-policy against this target, which is in progress.
+**Not implemented: the boundary stash.** Head k's last k slots keep draft-based inputs and are not rewritten. SGLang recomputes them from stashed target hidden states; simulation puts that at about 2% of tokens/pass.
+
+**CUDA graphs.** Capturing heads 1-2 in the prefill graph was correct but did not lower pass time. Each extra head costs about 13 ms per pass, dominated by TP4 all-reduces over RoCE and the vocab-parallel logits gather, not by kernel launches. So **k=2 is the default**, best for prose and concurrency; **k=3 is best for code**.
 
 ## 7. Speed path (2026-09-26)
 

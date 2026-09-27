@@ -516,3 +516,190 @@ try:
     _install_mimo_nonchain_propose()
 except Exception as exc:  # the API server process may lack worker modules
     logger.warning("MiMo-V2 MTP: non-chain propose not installed: %s", exc)
+
+
+# ---------------------------------------------------------------------------
+# Model Runner V2: non-chain multi-layer MTP for MiMo-V2 (MTPSpeculator).
+#
+# V2's AutoRegressiveSpeculator drafts step 0 over the verified span, then
+# steps 1.. as 1-token decodes that feed the previous step's output hidden
+# state back in, and never passes spec_step_idx, so head 0 runs every step.
+# MiMo's heads are trained non-chain (SGLang multi_layer_eagle for MiMo): head
+# k reads the TARGET hidden state h[i] and token x[i+1+k] at position i.
+#
+# Here the draft prefill (_prefill) runs head 0 unchanged and then heads
+# 1..K-1 over the same span, with the saved target hidden states, the same
+# positions / attention metadata / slots, input ids rotated left once per
+# head and head (k-1)'s draft at each request's last valid slot. Because the
+# heads run inside _prefill, V2's existing FULL draft-prefill CUDA graph
+# captures all of them; propose() then skips the chained decode steps.
+# Head k's last k slots keep draft-based inputs (a boundary stash would
+# recompute them; offline simulation puts that at about 2% of tokens/pass).
+# ---------------------------------------------------------------------------
+def _mimo_v2_is_nonchain(spec) -> bool:
+    """Decide once per speculator and allocate its buffers.
+
+    The installer runs when this module is imported, which happens inside
+    MTPSpeculator.load_model, so a load_model wrapper would miss that call.
+    This is instead called from propose/_prefill/capture; capture is wrapped
+    so the buffers exist before any CUDA graph is recorded.
+    """
+    flag = getattr(spec, "_mimo_nonchain", None)
+    if flag is None:
+        hf = spec.draft_model_config.hf_config
+        flag = (
+            getattr(hf, "model_type", None) == "mimo_v2_mtp"
+            and (getattr(hf, "n_predict", None) or 1) >= spec.num_speculative_steps > 1
+        )
+        spec._mimo_nonchain = flag
+        if flag:
+            spec._mimo_ids = torch.zeros_like(spec.input_buffers.input_ids)
+            spec._mimo_pos = torch.zeros_like(spec.input_buffers.positions)
+            spec._mimo_hid = torch.zeros_like(spec.hidden_states)
+            logger.info("MiMo-V2 MTP: non-chain heads 0..%d in the draft prefill graph",
+                        spec.num_speculative_steps - 1)
+    return flag
+
+
+def _mimo_v2_prefill_heads(self, num_reqs, num_tokens, attn_metadata,
+                           slot_mappings, num_tokens_across_dp,
+                           cudagraph_runtime_mode, mm_inputs, original):
+    from vllm.config.compilation import CUDAGraphMode
+    from vllm.forward_context import BatchDescriptor, set_forward_context
+
+    n = num_tokens
+    # _prefill overwrites the first rows of hidden_states and positions.
+    self._mimo_ids[:n].copy_(self.input_buffers.input_ids[:n])
+    self._mimo_pos[:n].copy_(self.input_buffers.positions[:n])
+    self._mimo_hid[:n].copy_(self.hidden_states[:n])
+    original(self, num_reqs, num_tokens, attn_metadata, slot_mappings,
+             num_tokens_across_dp, cudagraph_runtime_mode, mm_inputs)
+
+    lti = self.last_token_indices[:num_reqs]
+    last_pos = self._mimo_pos[lti]
+    idx_mapping = self.idx_mapping[:num_reqs]
+    # Inside a FULL capture keep the FULL mode; PIECEWISE regions are only
+    # compiled for head 0, so other heads run eager.
+    mode = (cudagraph_runtime_mode if cudagraph_runtime_mode == CUDAGraphMode.FULL
+            else CUDAGraphMode.NONE)
+    for k in range(1, self.num_speculative_steps):
+        self._mimo_ids[: n - 1].copy_(self._mimo_ids[1:n].clone())
+        self._mimo_ids[lti] = self.draft_tokens[:num_reqs, k - 1].to(self._mimo_ids.dtype)
+        self.input_buffers.input_ids[:n].copy_(self._mimo_ids[:n])
+        self.input_buffers.positions[:n].copy_(self._mimo_pos[:n])
+        self.hidden_states[:n].copy_(self._mimo_hid[:n])
+        with set_forward_context(
+            attn_metadata,
+            self.vllm_config,
+            num_tokens=n,
+            cudagraph_runtime_mode=mode,
+            num_tokens_across_dp=num_tokens_across_dp,
+            slot_mapping=slot_mappings,
+            batch_descriptor=BatchDescriptor(num_tokens=n),
+        ):
+            out = self.model(
+                input_ids=self.input_buffers.input_ids[:n],
+                positions=self.input_buffers.positions[:n],
+                hidden_states=self.hidden_states[:n],
+                spec_step_idx=k,
+            )
+        if isinstance(out, tuple):
+            out = out[0]
+        self.current_draft_step.fill_(k)
+        self.draft_tokens[:num_reqs, k] = self.sample_draft(
+            out[lti], last_pos + k, idx_mapping, self.temperature, self.seeds,
+            self.current_draft_step, self.draft_logits,
+        )
+
+
+def _mimo_v2_nonchain_propose(
+    self, input_batch, attn_metadata, slot_mappings, last_hidden_states,
+    aux_hidden_states, num_sampled, num_rejected, last_sampled,
+    next_prefill_tokens, temperature, seeds, num_tokens_across_dp=None,
+    dummy_run=False, skip_attn_for_dummy_run=False, mm_inputs=None,
+    is_profile=False,
+):
+    """AutoRegressiveSpeculator.propose without the chained decode steps:
+    all K drafts come out of _prefill (heads 0..K-1)."""
+    from vllm.config.compilation import CUDAGraphMode
+    from vllm.v1.worker.gpu.cudagraph_utils import get_uniform_token_count
+    from vllm.v1.worker.gpu.dp_utils import dispatch_cg_and_sync_dp
+    from vllm.v1.worker.gpu.spec_decode.autoregressive.speculator import (
+        prepare_prefill_inputs,
+    )
+
+    num_tokens = input_batch.num_tokens_after_padding
+    num_reqs = input_batch.num_reqs
+    max_query_len = input_batch.num_scheduled_tokens.max()
+    max_seq_len = input_batch.seq_lens_cpu_upper_bound[:num_reqs].max().item()
+    self.draft_max_seq_len = min(
+        max_seq_len + self.num_speculative_steps, self.max_model_len
+    )
+    self.hidden_states[:num_tokens].copy_(last_hidden_states)
+    self._copy_request_inputs(num_reqs, input_batch.idx_mapping, temperature, seeds)
+    prepare_prefill_inputs(
+        self.last_token_indices, self.current_draft_step, self.input_buffers,
+        input_batch, num_sampled, num_rejected, last_sampled,
+        next_prefill_tokens, self.max_num_reqs,
+    )
+    uniform_token_count = get_uniform_token_count(
+        num_reqs, input_batch.num_tokens, max_query_len
+    )
+    prefill_batch_desc, num_tokens_across_dp = dispatch_cg_and_sync_dp(
+        self.prefill_cudagraph_manager, num_reqs, num_tokens, uniform_token_count,
+        dp_size=self.dp_size, dp_rank=self.dp_rank, need_eager=is_profile,
+    )
+    self._prepare_eplb_forward(input_batch.num_tokens)
+    if prefill_batch_desc.cg_mode == CUDAGraphMode.FULL:
+        self.prefill_cudagraph_manager.run_fullgraph(prefill_batch_desc)
+    else:
+        self._prefill(
+            num_reqs, prefill_batch_desc.num_tokens, attn_metadata, slot_mappings,
+            num_tokens_across_dp=num_tokens_across_dp,
+            cudagraph_runtime_mode=prefill_batch_desc.cg_mode, mm_inputs=mm_inputs,
+        )
+    return self.draft_tokens[:num_reqs]
+
+
+def _install_mimo_v2_runner_nonchain() -> None:
+    if os.environ.get("MIMO_MTP_NONCHAIN", "1") != "1":
+        return
+    from vllm.v1.worker.gpu.spec_decode.mtp import speculator as _mtp
+
+    # Defined on MTPSpeculator itself (it inherits these from
+    # AutoRegressiveSpeculator), so Eagle and other drafters are untouched.
+    cls = _mtp.MTPSpeculator
+    if getattr(cls, "_mimo_nonchain_installed", False):
+        return
+    orig_capture, orig_prefill, orig_propose = cls.capture, cls._prefill, cls.propose
+
+    def capture(self, *args, **kwargs):
+        _mimo_v2_is_nonchain(self)  # allocate before any graph is recorded
+        return orig_capture(self, *args, **kwargs)
+
+    def _prefill(self, num_reqs, num_tokens, attn_metadata, slot_mappings,
+                 num_tokens_across_dp, cudagraph_runtime_mode=None, mm_inputs=None):
+        from vllm.config.compilation import CUDAGraphMode
+        if cudagraph_runtime_mode is None:
+            cudagraph_runtime_mode = CUDAGraphMode.NONE
+        if _mimo_v2_is_nonchain(self):
+            return _mimo_v2_prefill_heads(
+                self, num_reqs, num_tokens, attn_metadata, slot_mappings,
+                num_tokens_across_dp, cudagraph_runtime_mode, mm_inputs, orig_prefill)
+        return orig_prefill(self, num_reqs, num_tokens, attn_metadata, slot_mappings,
+                            num_tokens_across_dp, cudagraph_runtime_mode, mm_inputs)
+
+    def propose(self, *args, **kwargs):
+        if _mimo_v2_is_nonchain(self):
+            return _mimo_v2_nonchain_propose(self, *args, **kwargs)
+        return orig_propose(self, *args, **kwargs)
+
+    cls.capture, cls._prefill, cls.propose = capture, _prefill, propose
+    cls._mimo_nonchain_installed = True
+    logger.info("MiMo-V2 MTP: non-chain propose installed on MTPSpeculator (Model Runner V2)")
+
+
+try:
+    _install_mimo_v2_runner_nonchain()
+except Exception as exc:  # APIServer may not import worker modules
+    logger.warning("MiMo-V2 MTP: V2 non-chain propose not installed: %s", exc)

@@ -1,5 +1,5 @@
 #!/bin/bash
-# One rank of the four-Spark Abliterated champion (image v3, 2026-09-26).
+# One rank of the four-Spark Abliterated champion (image v4, 2026-09-27).
 #   launch-rank.sh <this-node-ip> <rank 0-3> <roce-gid-index> <host-checkpoint-path> [api|headless]
 #
 # HOSTPATH should be the Abliterated tree (…-ablit-dealign-op) or the gated HF download
@@ -9,13 +9,17 @@
 #   MAXLEN=1048576 SEQS=4 BATCHED=5120 LM_ONLY=1
 #   SPEC='{"method":"mtp","num_speculative_tokens":2}'   # all three MTP heads, non-chain
 #   COMPILE=<torch.compile + FULL_AND_PIECEWISE CUDA graphs>; COMPILE=eager to disable
-# Always: --enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo and
-# a default output cap of 8192 tokens (the checkpoint's generation_config said 2048).
+# Always: --enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo.
+# Server defaults for clients that send no sampling/template params (e.g. Pi):
+#   max_new_tokens 8192 (checkpoint said 2048, which truncated tool batches),
+#   temperature 0.7 / top_p 0.95 (1.0 occasionally locks into repetition loops),
+#   enable_thinking false (the template enables thinking when the kwarg is unset).
+# Request values always override these.
 #
 # Rank 0 uses mode api. The other three use headless. Start ranks 1-3 first.
 # GPU memory fraction is fixed at 0.85.
 set -euo pipefail
-IMAGE="${IMAGE:-ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v3}"
+IMAGE="${IMAGE:-ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v4}"
 NAME="${NAME:-mimo26-arvq-tp4}"
 PORT="${PORT:-8888}"
 MASTER="${MASTER_ADDR:?set MASTER_ADDR to the rank-0 IP}"
@@ -96,7 +100,8 @@ exec docker run -d --name "$NAME" \
   --enable-auto-tool-choice \
   --tool-call-parser mimo \
   --reasoning-parser mimo \
-  --override-generation-config '{"max_new_tokens": 8192}' \
+  --override-generation-config '{"max_new_tokens": 8192, "temperature": 0.7, "top_p": 0.95}' \
+  --default-chat-template-kwargs '{"enable_thinking": false}' \
   --host 0.0.0.0 --port "$PORT" \
   --trust-remote-code \
   --tensor-parallel-size 4 --pipeline-parallel-size 1 \

@@ -2,7 +2,7 @@
 
 Status: **tool parsers on the live Abliterated serve; Hermes executes writes, shell, and code** so a prompt can build a project, not only describe one.
 
-The checkpoint is the gated Abliterated tree. Thinking defaults **off** (`chat_template_kwargs.enable_thinking: false`). Turn thinking on per request when you want it.
+The checkpoint is the gated Abliterated tree. Thinking is **off** by default: Hermes sends `chat_template_kwargs.enable_thinking: false`, and since 2026-09-26 the server also defaults it off for clients that send nothing (the chat template itself turns thinking on when the kwarg is unset). Turn thinking on per request when you want it.
 
 ## Fixed 2026-09-26: never-ending tool-call loop
 

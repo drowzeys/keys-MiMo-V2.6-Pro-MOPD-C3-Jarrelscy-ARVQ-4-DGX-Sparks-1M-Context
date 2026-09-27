@@ -6,15 +6,15 @@ Gated weights (automatic approval after terms): **[drowzeys/keys-MiMo-V2.6-Pro-R
 
 The launcher enables MiMo tool calling on the server (`--enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo`). Hermes then **executes** those calls (`write_file`, `terminal`, `execute_code`, `read_file`, …) so a prompt can write a project, run it, and iterate. See [HERMES.md](HERMES.md) and [`serve/verify-tools-and-build.sh`](serve/verify-tools-and-build.sh).
 
-## Current status — 2026-09-26 UTC
+## Current status — 2026-09-27 UTC (image v4)
 
-- **Serving:** live on four Sparks with 1M context. MTP=2 over all three built-in heads, **CUDA graphs on**, four sequences, BF16 KV, GPU memory fraction 0.85. Image **v3**.
-- **Prose: 20.4–20.8 tok/s single-stream** (was 18.6 eager). **Prefill: 1,038–1,291 tok/s** (was 128). 38K-token time to first token: **36.6 s** (was 302 s). The prefill gain comes from new batched ARVQ expert kernels in image v3.
-- **✅ Tool-call loop FIXED (2026-09-26).** Hermes no longer loops forever on big tool batches. Truncated batches now return `finish_reason: "length"`, and the default output cap is 8192, up from 2048. See [HERMES.md](HERMES.md#fixed-2026-09-26-never-ending-tool-call-loop).
-- **[Hermes and tool calling](HERMES.md):** server parsers on; Hermes `hermes-cli` / `hermes-telegram` execute `write_file`, `terminal`, `execute_code`. A prompt can scaffold a file, run it, and return the program output. `tool_use_enforcement: true` so the model calls tools instead of describing them.
+- **Decode: ~30 tok/s on code, 21.8 tok/s on prose**, single stream. That's up from 18.6 prose on the old eager build.
+- **All three MTP draft heads now run**, non-chain, in the V2 runner. Before v4, only head 0 ever drafted. On code, drafting accepts 2.6 tokens per pass at k=2 and 3.2–3.35 at k=3.
+- **Prefill: 1,038–1,291 tok/s** (was 128). 38K-token time to first token: **36.6 s** (was 302 s).
+- **✅ Tool-call loop fixed.** Truncated tool batches return `finish_reason: "length"`, and the output cap is 8192. See [HERMES.md](HERMES.md#fixed-2026-09-26-never-ending-tool-call-loop).
+- **Safer defaults for clients that send nothing** (for example Pi): temperature 0.7 and thinking off unless requested. See [Clients](#clients).
 - **[Abliteration](ABLITERATION.md):** live `dealign-op` tree. Thinking **off** **32/32** refusal and **22/22** cyber; thinking **on** 25/32 and 16/22 (visible content). Gated HF: [drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated).
-- **[DFlash](DFLASH.md):** measured and slower than MTP=2. MTP=2 remains the serving choice.
-- **Vision:** the live serve is text-only. The separate Hermes vision endpoint was offline at verification.
+- **Vision:** the live serve is text-only.
 
 Canonical snapshot: [serve/verification/current-status.json](serve/verification/current-status.json) (thinking-off 32/32 · 22/22, thinking-on 25/32 · 16/22, live `write_file`+`terminal` build stdout 42). The earlier [2026-09-25-status.json](serve/verification/2026-09-25-status.json) is the pre-champion tool-parser check on l68t.
 
@@ -34,7 +34,7 @@ Jarrelscy marks full-model quality and SM120 / 1M serving as **unqualified**. Th
 
 ## Champion
 
-**MTP = 2** draft tokens, selected for single-stream prose. The draft is the checkpoint's own MTP stack (`model.mtp.layers.0`, `.1`, `.2`). The image loads **all three heads** and runs them non-chain, the way Xiaomi's SGLang deploy does. The published fork loaded one head and replayed it. See [SPARK-PORT.md §6](SPARK-PORT.md#6-all-three-mtp-heads-non-chain-2026-09-26).
+**MTP = 2** draft tokens: the best setting for prose and for concurrent requests. The draft is the checkpoint's own three-head MTP stack (`model.mtp.layers.0-2`). v4 runs the heads **non-chain**, the way Xiaomi's SGLang deploy does: head k reads the target's hidden state plus the token k+1 ahead. The fork as published ran head 0 for every draft step; see [SPARK-PORT.md §6](SPARK-PORT.md#6-all-three-mtp-heads-non-chain-on-the-v2-runner-image-v4-2026-09-27). **MTP = 3** is faster on code (32–34 tok/s) but slower on prose.
 
 | | |
 |---|---|
@@ -49,27 +49,29 @@ Jarrelscy marks full-model quality and SM120 / 1M serving as **unqualified**. Th
 | Draft | `--speculative-config '{"method":"mtp","num_speculative_tokens":2}'` |
 | Served name | `MiMo-V2.6-Pro-ARVQ` |
 | Tool calls | `--enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo` (required; without these Hermes `tool_choice: auto` is HTTP 400) |
-| Output cap | `--override-generation-config '{"max_new_tokens": 8192}'` (the checkpoint default of 2048 caused the tool loop) |
+| Server defaults | `--override-generation-config '{"max_new_tokens": 8192, "temperature": 0.7, "top_p": 0.95}'` and `--default-chat-template-kwargs '{"enable_thinking": false}'`. These apply only when a client sends no values of its own; see [Clients](#clients). |
 | Checkpoint | abliterated tree `…-ablit-dealign-op` / gated HF repo above |
 
 Measured KV pool on the champion boot: about **2.07M tokens** (three MTP heads now hold KV). Weights about **73.2 GiB per rank**.
 
-### Speed, current champion (2026-09-26)
+### Speed, current champion (image v4, 2026-09-27)
 
-Prose: 512 new tokens, temperature 1.0, top_p 0.95, thinking off. Single-stream mean of three stories (beekeeper, lighthouse, nurse), short prompt. Reproduce with [`serve/bench/speedbench.py`](serve/bench/speedbench.py).
+512 new tokens, temperature 1.0, top_p 0.95, thinking off, one request at a time. Prose is the mean of three literary stories (beekeeper, lighthouse, nurse). Code is the mean of two tasks (a red-black tree, a lexer and parser). Reproduce with [`serve/bench/speedbench.py`](serve/bench/speedbench.py).
 
-| Draft tokens | Decode | Tokens per pass |
-|---:|---:|---:|
-| **2 (champion)** | **20.4 tok/s** | **1.82** |
-| 3 | 18.6 tok/s | 1.86 |
+| Draft tokens | **Prose** | **Code** | Prose tokens/pass | Code tokens/pass |
+|---:|---:|---:|---:|---:|
+| **2 (default)** | **21.8 tok/s** | **30.9 tok/s** | 1.83 | 2.64 |
+| 3 | 19.9 tok/s | 32.3–34.0 tok/s | 1.93 | 3.19–3.35 |
+| old build (head 0 only, k=2) | 20.4 tok/s | — | 1.82 | — |
 
-Requests overlapped (`max_num_seqs 4`), MTP=2:
+Requests overlapped (`max_num_seqs 4`), MTP=2, prose:
 
 | Requests | Aggregate | Per request |
 |---:|---:|---:|
-| 1 | 20.4 tok/s | 20.4 tok/s |
-| 2 | 31.1 tok/s | 15.6 tok/s |
-| 4 | 43.5 tok/s | 10.9 tok/s |
+| 1 | 21.8 tok/s | 21.8 tok/s |
+| 4 | **46.6 tok/s** | 11.6 tok/s |
+
+Creative stories at temperature 1.0 are the hardest text to predict. On ordinary held-out prose, the heads reach 2.32 tokens/pass at k=3 (0.67 / 0.41 / 0.24 per position), and code reaches 2.98.
 
 Uncached prefill (nonce prompt, `max_tokens` 1):
 
@@ -85,49 +87,58 @@ MTP acceptance per draft position (sampled prose): 0.63 / 0.19. Heads 1-2 lost a
 
 ## Image
 
-**`ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:latest`**, which is the same image as `:63430f7-sm121-v3`. It is public and needs no login. This is the only published image: older tags were removed, so you can't pull a slower build by mistake. `serve/launch-rank.sh` pins `:63430f7-sm121-v3`.
+**`ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:latest`**, the same image as `:63430f7-sm121-v4`. It is public, needs no login, and is the only supported image. `serve/launch-rank.sh` pins `:63430f7-sm121-v4`.
 
-Digest `sha256:52cbb3b3b3bc902fa4bc5f4f59b5e82b660da9629d87ebc662add8319d4aca84`.
+Digest `sha256:6c6b6aed088da63452ccc280cc0b88e3931ae7de5c27126053d0332b196769cf`.
 
 The image contains:
+- Jarrelscy's fork compiled for GB10 (`sm_121a`), plus the Spark loader fixes.
+- **All three MTP heads running non-chain on the V2 `MTPSpeculator`**, inside the draft-prefill CUDA graph.
+- **Expert-batched ARVQ prefill kernels** (`grouped.cu`, built during the image build).
+- The tool-call loop fix and torch.compile-clean abliteration hooks.
 
-- **Jarrelscy's fork** compiled for GB10 (`sm_121a`), with the Spark loader fixes.
-- **All three MTP heads**, run non-chain.
-- **The tool-call loop fix.**
-- **CUDA-graph-clean abliteration hooks.**
-- **Expert-batched ARVQ prefill kernels** (`grouped.cu`, built during the image build). Per MoE layer at 5120 tokens they take 18.9 ms instead of 146.8 ms, with output cosine 0.9999996 vs native.
+The recipe is [`serve/image/Dockerfile`](serve/image/Dockerfile), built on [`Dockerfile.base`](serve/image/Dockerfile.base). A rebuild reproduces the published image file for file (17 checks). The image does not contain the weights.
 
-The recipe is [`serve/image/Dockerfile`](serve/image/Dockerfile), on top of [`Dockerfile.base`](serve/image/Dockerfile.base). It reproduces the published image file-for-file: all 17 overlaid files and env defaults were checked. The image does not contain the weights.
+## Bring-up (best setup = the defaults)
 
-## Bring-up
-
-Put the checkpoint on storage the four ranks can read. Then, on each node:
+You need four DGX Sparks on the 200G RoCE fabric. The launcher's defaults **are** the champion configuration:
+- v4 image, MTP k=2 across all three heads, CUDA graphs
+- batched prefill, 1M context, 4 sequences, GPU memory fraction 0.85
+- tool-call loop fix and server sampling defaults
 
 ```bash
-# rank 0 is the API. ranks 1–3 are headless.
-# GID is the IPv4 RoCE index for that node's HCA. It is not the same on every Spark.
-export LM_ONLY=1
-export MAXLEN=1048576
-export SEQS=4
-export SPEC='{"method":"mtp","num_speculative_tokens":2}'
-export IMAGE=ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v3   # the default
-export MASTER_ADDR=10.0.0.1   # rank 0
-export HOSTPATH=/path/to/MiMo-V2.6-Pro-RL-ARVQ-hybrid-ablit-dealign-op
-# or: hf download drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated --local-dir "$HOSTPATH"
-export GID_INDEX=3            # confirm with show_gids; one node in this cluster needed 7
+# 1. Weights (gated repo: accept the terms once), on storage all four nodes can read
+hf download drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated --local-dir /path/to/mimo-arvq
 
-bash serve/launch-rank.sh "$HEAD_IP" "$RANK" "$GID_INDEX" "$HOSTPATH" headless
-# rank 0:
-bash serve/launch-rank.sh "$HEAD_IP" 0 "$GID_INDEX" "$HOSTPATH" api
+# 2. Recipe, on each node
+git clone https://github.com/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated-4-DGX-Sparks-1M-Context
+cd keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated-4-DGX-Sparks-1M-Context
+export MASTER_ADDR=<rank-0 IP>
+
+# 3. Start ranks 1-3 first (headless), then rank 0 (the API on :8888)
+bash serve/launch-rank.sh <this-node-IP> <1|2|3> <RoCE-GID-index> /path/to/mimo-arvq headless
+bash serve/launch-rank.sh <this-node-IP> 0 <RoCE-GID-index> /path/to/mimo-arvq api
 ```
 
-NCCL on this cluster used the 200G RoCE NIC (`NCCL_NET=IB`), not the TCP path on that same device. See [SPARK-PORT.md](SPARK-PORT.md) for the three loader fixes required before the first token.
+The only per-node value is the **RoCE GID index**: the IPv4 RoCE entry for the HCA, from `show_gids`. It was 3 on three of our Sparks and 7 on one. For code-heavy use, add `SPEC='{"method":"mtp","num_speculative_tokens":3}'`. NCCL uses the 200G RoCE NIC (`NCCL_NET=IB`). See [SPARK-PORT.md](SPARK-PORT.md) for the port notes.
 
 ## Integration and experiments
 
 - **[Hermes](HERMES.md)** — parsers, Hermes execution, and build-from-prompt (`write_file` + `terminal`).
-- **[DFlash](DFLASH.md)** — measured on the old eager build. 13.0 tok/s single-stream prose, 22.5 tok/s at four requests. Slower than MTP. Not the champion.
+- **[DFlash](DFLASH.md)** — measured on the old eager build (13.0 tok/s prose). Slower than MTP. Not the champion.
 - **[Abliteration](ABLITERATION.md)** — live dealign-op: thinking-off 32/32 · 22/22; thinking-on 25/32 · 16/22.
+
+## Clients
+
+**Use `/v1/chat/completions`.** The raw `/v1/completions` endpoint skips the chat template, so an instruct model just continues the prompt text: echoing, garbling, and no tool calls. That is expected behaviour, not a model fault.
+
+Server defaults, which a client's own values always override:
+
+| Setting | Default | Why |
+|---|---|---|
+| `max_tokens` | 8192 | The checkpoint's 2048 truncated parallel tool batches, which caused the tool-call loop. |
+| `temperature` / `top_p` | **0.7** / 0.95 | Some clients (for example Pi) send no sampling parameters. At the checkpoint's 1.0, about 0.3% of samples lock into a repetition loop (about 2% for long thinking-on outputs). See the measurement below. |
+| `enable_thinking` | **false** | The chat template turns thinking **on** when the kwarg is missing. Pass `"chat_template_kwargs": {"enable_thinking": true}` to opt in. |
 
 ## Build from a prompt
 
