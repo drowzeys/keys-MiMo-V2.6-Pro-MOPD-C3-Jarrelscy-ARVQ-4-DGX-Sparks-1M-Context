@@ -81,9 +81,7 @@ Uncached prefill (nonce prompt, `max_tokens` 1):
 | 38K tokens | 126 tok/s | 527 tok/s | **1,038 tok/s** | **36.6 s** |
 | 152K tokens | — | — | 615 tok/s | 247 s |
 
-Prefill slows as prompts grow because the 10 full-attention layers grow with context length. Decode is unchanged by v3.
-
-MTP acceptance per draft position (sampled prose): 0.63 / 0.19. Heads 1-2 lost accuracy on this target because ARVQ quantization and the abliteration moved the hidden state they read. On-policy fine-tuning of the heads is in progress.
+Prefill slows as prompts grow because the 10 full-attention layers grow with context length. Prefill comes from the batched ARVQ kernels; the v4 MTP change affects decode only.
 
 ## Image
 
