@@ -138,6 +138,22 @@ Server defaults, which a client's own values always override:
 | `temperature` / `top_p` | **0.7** / 0.95 | Some clients (for example Pi) send no sampling parameters. At the checkpoint's 1.0, about 0.3% of samples lock into a repetition loop (about 2% for long thinking-on outputs). See the measurement below. |
 | `enable_thinking` | **false** | The chat template turns thinking **on** when the kwarg is missing. Pass `"chat_template_kwargs": {"enable_thinking": true}` to opt in. |
 
+Measured on image v4, 2026-09-27. We took the 19 prompts whose temperature-1.0 samples had looped in our 6,000-sample on-policy run and sampled each 3 times:
+
+| Setting | Samples that looped |
+|---|---:|
+| Old behaviour (temperature 1.0, thinking on) | 5 / 57 |
+| **New defaults** (client sends nothing) | **2 / 57** |
+
+A request sent without `chat_template_kwargs` returned no reasoning block, and one with `enable_thinking: true` did. One-shot validation of v4 (GHCR pull plus `serve/launch-rank.sh` with defaults):
+
+| Measure | Result |
+|---|---:|
+| Prose | 22.4 tok/s |
+| Code | 30.5 tok/s |
+| 4 requests, aggregate | 48.0 tok/s |
+| 38K prefill | 1,014 tok/s |
+
 ## Build from a prompt
 
 After the four ranks are up and Hermes points at `http://<rank-0>:8888/v1` model `MiMo-V2.6-Pro-ARVQ`:

@@ -55,3 +55,80 @@
 {"label": "v3-ghcr-oneshot", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.516, "decode_tps": 20.56, "tokens_per_pass": 1.772}
 {"label": "v3-ghcr-oneshot", "kind": "prose_mean", "decode_tps": 20.77, "per_position_acceptance": {"0": 0.589, "1": 0.193}}
 {"label": "v3-ghcr-oneshot", "kind": "prefill", "prompt_tokens": 38043, "ttft_s": 37.48, "prefill_tps": 1014.9}
+{"label": "v4rc-nonchain-k3", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.251, "decode_tps": 19.8, "tokens_per_pass": 1.914}
+{"label": "v4rc-nonchain-k3", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.252, "decode_tps": 20.06, "tokens_per_pass": 1.958}
+{"label": "v4rc-nonchain-k3", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.213, "decode_tps": 20.65, "tokens_per_pass": 2.004}
+{"label": "v4rc-nonchain-k3", "kind": "prose_mean", "decode_tps": 20.17, "per_position_acceptance": {"0": 0.589, "1": 0.282, "2": 0.087}}
+{"label": "v4rc-nonchain-k3", "kind": "concurrent", "requests": 2, "aggregate_tps": 29.02, "per_request_tps": 14.51, "wall_s": 35.6}
+{"label": "v4rc-nonchain-k3", "kind": "concurrent", "requests": 4, "aggregate_tps": 40.66, "per_request_tps": 10.16, "wall_s": 50.6}
+{"label": "v4rc-mtpspec-k3", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.274, "decode_tps": 19.33, "tokens_per_pass": 1.886}
+{"label": "v4rc-mtpspec-k3", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.296, "decode_tps": 21.27, "tokens_per_pass": 2.069}
+{"label": "v4rc-mtpspec-k3", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.222, "decode_tps": 18.97, "tokens_per_pass": 1.838}
+{"label": "v4rc-mtpspec-k3", "kind": "prose_mean", "decode_tps": 19.86, "tokens_per_pass": 1.926, "per_position_acceptance": {"0": 0.582, "1": 0.257, "2": 0.087}}
+{"label": "v4rc-mtpspec-k3", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.317, "decode_tps": 32.88, "tokens_per_pass": 3.255}
+{"label": "v4rc-mtpspec-k3", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.347, "decode_tps": 35.2, "tokens_per_pass": 3.45}
+{"label": "v4rc-mtpspec-k3", "kind": "code_mean", "decode_tps": 34.04, "tokens_per_pass": 3.35, "per_position_acceptance": {"0": 0.899, "1": 0.775, "2": 0.676}}
+{"label": "v4rc-mtpspec-k3", "kind": "concurrent", "requests": 4, "aggregate_tps": 38.53, "per_request_tps": 9.63, "wall_s": 53.4}
+{"label": "v4rc-mtpspec-k2", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.307, "decode_tps": 21.22, "tokens_per_pass": 1.774}
+{"label": "v4rc-mtpspec-k2", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.244, "decode_tps": 21.06, "tokens_per_pass": 1.803}
+{"label": "v4rc-mtpspec-k2", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.373, "decode_tps": 23.29, "tokens_per_pass": 1.984}
+{"label": "v4rc-mtpspec-k2", "kind": "prose_mean", "decode_tps": 21.86, "tokens_per_pass": 1.85, "per_position_acceptance": {"0": 0.575, "1": 0.275}}
+{"label": "v4rc-mtpspec-k2", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.217, "decode_tps": 29.75, "tokens_per_pass": 2.542}
+{"label": "v4rc-mtpspec-k2", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.308, "decode_tps": 30.22, "tokens_per_pass": 2.573}
+{"label": "v4rc-mtpspec-k2", "kind": "code_mean", "decode_tps": 29.98, "tokens_per_pass": 2.558, "per_position_acceptance": {"0": 0.85, "1": 0.708}}
+{"label": "v4rc-mtpspec-k2", "kind": "concurrent", "requests": 4, "aggregate_tps": 46.34, "per_request_tps": 11.59, "wall_s": 44.6}
+{"label": "v4rc-graphed-k3", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.254, "decode_tps": 18.92, "tokens_per_pass": 1.845}
+{"label": "v4rc-graphed-k3", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.317, "decode_tps": 19.96, "tokens_per_pass": 1.943}
+{"label": "v4rc-graphed-k3", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.24, "decode_tps": 20.81, "tokens_per_pass": 2.028}
+{"label": "v4rc-graphed-k3", "kind": "prose_mean", "decode_tps": 19.9, "tokens_per_pass": 1.936, "per_position_acceptance": {"0": 0.61, "1": 0.242, "2": 0.084}}
+{"label": "v4rc-graphed-k3", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.257, "decode_tps": 32.06, "tokens_per_pass": 3.174}
+{"label": "v4rc-graphed-k3", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.331, "decode_tps": 32.62, "tokens_per_pass": 3.2}
+{"label": "v4rc-graphed-k3", "kind": "code_mean", "decode_tps": 32.34, "tokens_per_pass": 3.187, "per_position_acceptance": {"0": 0.863, "1": 0.717, "2": 0.607}}
+{"label": "v4rc-graphed-k3", "kind": "concurrent", "requests": 4, "aggregate_tps": 37.58, "per_request_tps": 9.4, "wall_s": 54.9}
+{"label": "v4rc-graphed-k2", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.316, "decode_tps": 21.54, "tokens_per_pass": 1.819}
+{"label": "v4rc-graphed-k2", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.284, "decode_tps": 21.02, "tokens_per_pass": 1.768}
+{"label": "v4rc-graphed-k2", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.268, "decode_tps": 22.9, "tokens_per_pass": 1.921}
+{"label": "v4rc-graphed-k2", "kind": "prose_mean", "decode_tps": 21.82, "tokens_per_pass": 1.833, "per_position_acceptance": {"0": 0.587, "1": 0.246}}
+{"label": "v4rc-graphed-k2", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.311, "decode_tps": 31.68, "tokens_per_pass": 2.704}
+{"label": "v4rc-graphed-k2", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.268, "decode_tps": 30.15, "tokens_per_pass": 2.578}
+{"label": "v4rc-graphed-k2", "kind": "code_mean", "decode_tps": 30.91, "tokens_per_pass": 2.639, "per_position_acceptance": {"0": 0.892, "1": 0.747}}
+{"label": "v4rc-graphed-k2", "kind": "concurrent", "requests": 4, "aggregate_tps": 46.57, "per_request_tps": 11.64, "wall_s": 44.2}
+{"label": "v5rc-k3-thr0", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.259, "decode_tps": 20.4, "tokens_per_pass": 1.996}
+{"label": "v5rc-k3-thr0", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.315, "decode_tps": 20.73, "tokens_per_pass": 2.04}
+{"label": "v5rc-k3-thr0", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.298, "decode_tps": 20.11, "tokens_per_pass": 1.973}
+{"label": "v5rc-k3-thr0", "kind": "prose_mean", "decode_tps": 20.41, "tokens_per_pass": 2.003, "per_position_acceptance": {"0": 0.622, "1": 0.286, "2": 0.095}}
+{"label": "v5rc-k3-thr0", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.297, "decode_tps": 33.04, "tokens_per_pass": 3.268}
+{"label": "v5rc-k3-thr0", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.348, "decode_tps": 31.64, "tokens_per_pass": 3.147}
+{"label": "v5rc-k3-thr0", "kind": "code_mean", "decode_tps": 32.34, "tokens_per_pass": 3.207, "per_position_acceptance": {"0": 0.863, "1": 0.738, "2": 0.606}}
+{"label": "v5rc-k3-thr0.2", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.252, "decode_tps": 19.73, "tokens_per_pass": 1.865}
+{"label": "v5rc-k3-thr0.2", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.35, "decode_tps": 20.19, "tokens_per_pass": 1.9}
+{"label": "v5rc-k3-thr0.2", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.344, "decode_tps": 19.96, "tokens_per_pass": 1.897}
+{"label": "v5rc-k3-thr0.2", "kind": "prose_mean", "decode_tps": 19.96, "tokens_per_pass": 1.887, "per_position_acceptance": {"0": 0.595, "1": 0.247, "2": 0.045}}
+{"label": "v5rc-k3-thr0.2", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.281, "decode_tps": 31.61, "tokens_per_pass": 3.141}
+{"label": "v5rc-k3-thr0.2", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.298, "decode_tps": 33.9, "tokens_per_pass": 3.362}
+{"label": "v5rc-k3-thr0.2", "kind": "code_mean", "decode_tps": 32.75, "tokens_per_pass": 3.248, "per_position_acceptance": {"0": 0.854, "1": 0.762, "2": 0.632}}
+{"label": "v5rc-k3-thr0.3", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.234, "decode_tps": 19.23, "tokens_per_pass": 1.778}
+{"label": "v5rc-k3-thr0.3", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.264, "decode_tps": 20.05, "tokens_per_pass": 1.855}
+{"label": "v5rc-k3-thr0.3", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.26, "decode_tps": 18.92, "tokens_per_pass": 1.762}
+{"label": "v5rc-k3-thr0.3", "kind": "prose_mean", "decode_tps": 19.4, "tokens_per_pass": 1.797, "per_position_acceptance": {"0": 0.603, "1": 0.178, "2": 0.016}}
+{"label": "v5rc-k3-thr0.3", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.3, "decode_tps": 33.08, "tokens_per_pass": 3.253}
+{"label": "v5rc-k3-thr0.3", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.259, "decode_tps": 30.94, "tokens_per_pass": 3.048}
+{"label": "v5rc-k3-thr0.3", "kind": "code_mean", "decode_tps": 32.01, "tokens_per_pass": 3.147, "per_position_acceptance": {"0": 0.877, "1": 0.742, "2": 0.528}}
+{"label": "v5rc-k3-thr0.5", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.3, "decode_tps": 19.26, "tokens_per_pass": 1.741}
+{"label": "v5rc-k3-thr0.5", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.33, "decode_tps": 19.79, "tokens_per_pass": 1.806}
+{"label": "v5rc-k3-thr0.5", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.229, "decode_tps": 19.78, "tokens_per_pass": 1.803}
+{"label": "v5rc-k3-thr0.5", "kind": "prose_mean", "decode_tps": 19.61, "tokens_per_pass": 1.783, "per_position_acceptance": {"0": 0.636, "1": 0.14, "2": 0.007}}
+{"label": "v5rc-k3-thr0.5", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.273, "decode_tps": 31.99, "tokens_per_pass": 3.135}
+{"label": "v5rc-k3-thr0.5", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.347, "decode_tps": 31.32, "tokens_per_pass": 3.066}
+{"label": "v5rc-k3-thr0.5", "kind": "code_mean", "decode_tps": 31.66, "tokens_per_pass": 3.1, "per_position_acceptance": {"0": 0.897, "1": 0.721, "2": 0.482}}
+{"label": "v4-final-oneshot-k2", "kind": "prose", "task": "beekeeper", "tokens": 512, "ttft_s": 0.306, "decode_tps": 22.63, "tokens_per_pass": 1.936}
+{"label": "v4-final-oneshot-k2", "kind": "prose", "task": "lighthouse", "tokens": 512, "ttft_s": 0.319, "decode_tps": 22.3, "tokens_per_pass": 1.9}
+{"label": "v4-final-oneshot-k2", "kind": "prose", "task": "nurse", "tokens": 512, "ttft_s": 0.272, "decode_tps": 22.18, "tokens_per_pass": 1.889}
+{"label": "v4-final-oneshot-k2", "kind": "prose_mean", "decode_tps": 22.37, "tokens_per_pass": 1.908, "per_position_acceptance": {"0": 0.618, "1": 0.29}}
+{"label": "v4-final-oneshot-k2", "kind": "code", "task": "rbtree", "tokens": 512, "ttft_s": 0.274, "decode_tps": 32.3, "tokens_per_pass": 2.792}
+{"label": "v4-final-oneshot-k2", "kind": "code", "task": "lexer", "tokens": 512, "ttft_s": 0.3, "decode_tps": 28.68, "tokens_per_pass": 2.469}
+{"label": "v4-final-oneshot-k2", "kind": "code_mean", "decode_tps": 30.49, "tokens_per_pass": 2.62, "per_position_acceptance": {"0": 0.874, "1": 0.746}}
+{"label": "v4-final-oneshot-k2", "kind": "concurrent", "requests": 2, "aggregate_tps": 33.27, "per_request_tps": 16.64, "wall_s": 31.1}
+{"label": "v4-final-oneshot-k2", "kind": "concurrent", "requests": 4, "aggregate_tps": 47.97, "per_request_tps": 11.99, "wall_s": 43.0}
+{"label": "v4-final-oneshot-k2", "kind": "prefill", "prompt_tokens": 9535, "ttft_s": 10.19, "prefill_tps": 935.7}
+{"label": "v4-final-oneshot-k2", "kind": "prefill", "prompt_tokens": 38045, "ttft_s": 37.5, "prefill_tps": 1014.4}

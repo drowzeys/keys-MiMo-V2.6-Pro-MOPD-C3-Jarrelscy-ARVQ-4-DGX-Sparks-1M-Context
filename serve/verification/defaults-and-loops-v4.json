@@ -1,0 +1,9 @@
+{
+ "startup_log": "(APIServer pid=1) WARNING 09-27 02:23:39 [model.py:1488] Default vLLM sampling parameters have been overridden by the model's `generation_config.json`: `{'temperature': 0.7, 'top_p': 0.95, 'max_tokens': 8192}`. If this is not intended, please relaunch vLLM instance with `--generation-config vllm`.",
+ "no_kwargs_has_reasoning": false,
+ "thinking_true_has_reasoning": true,
+ "no_kwargs_answer": "391",
+ "looping_prompts": 19,
+ "loops_new": "2/57",
+ "loops_old": "5/57"
+}
