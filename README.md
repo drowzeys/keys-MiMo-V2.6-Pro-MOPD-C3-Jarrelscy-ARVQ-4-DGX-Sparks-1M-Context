@@ -1,4 +1,4 @@
-# keys-MiMo-V2.6-Pro-MOPD Jarrelscy ARVQ — 4 DGX Sparks, 1M context
+# keys-MiMo-V2.6-Pro-MOPD Jarrelscy ARVQ integration — 4 DGX Sparks, 1M context
 
 Serving recipe for **[XiaomiMiMo/MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD)** in [Jarrelscy's ARVQ / NVFP4 hybrid](https://huggingface.co/jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid) on **four NVIDIA DGX Spark (GB10)** nodes, tensor-parallel 4, **1,048,576-token context**.
 
@@ -113,8 +113,8 @@ hf download drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated --local-
 # hf download drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21 --local-dir /path/to/mimo-arvq
 
 # 2. Recipe, on each node
-git clone https://github.com/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated-4-DGX-Sparks-1M-Context
-cd keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated-4-DGX-Sparks-1M-Context
+git clone https://github.com/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context
+cd keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context
 export MASTER_ADDR=<rank-0 IP>
 
 # 3. Prebuilt image is pulled by launch-rank.sh (ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v4)

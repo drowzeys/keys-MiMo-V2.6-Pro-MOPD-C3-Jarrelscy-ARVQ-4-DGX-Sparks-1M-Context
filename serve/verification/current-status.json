@@ -1,6 +1,6 @@
 {
   "updated_at_utc": "2026-09-28T13:35:00Z",
-  "repo": "drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated-4-DGX-Sparks-1M-Context",
+  "repo": "drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context",
   "weights": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated",
   "weights_stock_mopd": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21",
   "gated": "auto",

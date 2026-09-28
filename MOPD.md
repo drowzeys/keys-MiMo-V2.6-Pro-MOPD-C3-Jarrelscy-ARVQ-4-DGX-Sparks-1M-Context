@@ -1,4 +1,4 @@
-# MOPD on the four-Spark ARVQ stack (2026-09-28)
+# MOPD × Jarrelscy ARVQ integration on 4 DGX Sparks (2026-09-28)
 
 Xiaomi released [MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD) to fix tool-call repetition in
 the RL model: the same call emitted many times in one turn. We carried it into Jarrelscy's ARVQ / NVFP4 hybrid.
