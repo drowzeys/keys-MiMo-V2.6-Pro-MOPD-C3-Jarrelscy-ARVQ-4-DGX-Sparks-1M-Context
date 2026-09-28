@@ -39,7 +39,6 @@ All candidates use FP8 attention `o_proj` (SPARK-PORT.md §9) and image v4 with 
 
 | | Turns with a repeated call | Flooding turns (32+ calls) | Calls per tool turn | Largest turn | Hit 8192-token cap |
 |---|---:|---:|---:|---:|---:|
-| RL abliterated (`dealign-op`) | 53% | 9.0% | 146 | 787 | 12% |
 | C0 stock RL | 30% | 5.5% | 60 | 354 | 7% |
 | C1 | 9.5% | 1.4% | 21 | 451 | 2% |
 | C2 | 16% | 2.5% | 35 | 335 | 4% |

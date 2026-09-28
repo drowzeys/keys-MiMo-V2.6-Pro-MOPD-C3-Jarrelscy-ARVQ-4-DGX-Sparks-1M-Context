@@ -87,7 +87,7 @@ The image contains:
 - Jarrelscy's fork compiled for GB10 (`sm_121a`), plus the Spark loader fixes.
 - **All three MTP heads running non-chain on the V2 `MTPSpeculator`**, inside the draft-prefill CUDA graph.
 - **Expert-batched ARVQ prefill kernels** (`grouped.cu`, built during the image build).
-- The tool-call loop fix and torch.compile-clean abliteration hooks.
+- The tool-call loop fix and torch.compile-clean capture hooks.
 
 The recipe is [`serve/image/Dockerfile`](serve/image/Dockerfile), built on [`Dockerfile.base`](serve/image/Dockerfile.base). A rebuild reproduces the published image file for file (17 checks). The image does not contain the weights — download hybrid-21 separately.
 
