@@ -66,7 +66,7 @@ C3's NLL on our RL on-policy held-out text rises from 0.475 to 0.541. That is ex
 | C3 | 23.2 | 31.3 | 46.1 | 1,047 / 1,032 |
 
 - **C3's cost:** its extra NVFP4 experts add ~11 GiB of weights per rank. Decode drops ~5-8% because a 4-bit expert is more bytes to read than a 2-bit one.
-- **KV pool:** measured on C0 at 2,116,828 tokens (27.22 GiB). For C3 it is ~1.2M tokens, estimated from the weight growth, which still fits the 1M context.
+- **KV pool:** measured at 2,116,828 tokens on C0 and **1,282,005 tokens on C3** (weights 72.2 → 83.2 GiB per rank), which still fits the 1M context.
 
 ## Limits
 
