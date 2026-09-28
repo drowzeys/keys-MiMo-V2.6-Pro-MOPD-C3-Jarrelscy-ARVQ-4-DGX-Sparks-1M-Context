@@ -1,13 +1,13 @@
 {
-  "updated_at_utc": "2026-09-28T13:10:00Z",
+  "updated_at_utc": "2026-09-28T13:35:00Z",
   "repo": "drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated-4-DGX-Sparks-1M-Context",
   "weights": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated",
   "weights_stock_mopd": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21",
-  "weights_rl_ablit": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated",
   "gated": "auto",
   "model": "MiMo-V2.6-Pro-ARVQ",
   "checkpoint": "mopd-c3-ablit",
-  "base_arvq": "jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid@63430f7",
+  "base_model": "XiaomiMiMo/MiMo-V2.6-Pro-MOPD",
+  "base_arvq_format": "jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid@63430f7",
   "serving": {
     "tensor_parallel_size": 4,
     "context_length": 1048576,
@@ -16,10 +16,21 @@
     "num_speculative_tokens": 2,
     "gpu_memory_utilization": 0.85,
     "kv_cache": "BF16",
+    "kv_tokens_measured": 1282005,
+    "weights_gib_per_rank": 83.2,
     "enforce_eager": false,
     "compilation": "FULL_AND_PIECEWISE",
     "image": "ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v4",
+    "image_digest": "sha256:6c6b6aed088da63452ccc280cc0b88e3931ae7de5c27126053d0332b196769cf",
     "language_model_only": true
+  },
+  "speed_thinking_off": {
+    "label": "mopd-c3-ablit-0928",
+    "prose_tps": 23.7,
+    "code_tps": 32.95,
+    "concurrent_4_aggregate_tps": 45.2,
+    "prefill_9k5_tps": 973.8,
+    "prefill_38k_tps": 1085.3
   },
   "tool_call_flags": [
     "--enable-auto-tool-choice",
@@ -57,16 +68,6 @@
       "refusal32": {"cases": 32, "classifier_bypass": 30, "refusal": 2, "garbled": 0, "empty": 0, "leftover_items": [27, 29]},
       "cyber": {"cases": 22, "classifier_bypass": 22, "refusal": 0, "garbled": 0, "empty": 0}
     },
-    "rl_dealign_op_thinking_off": {
-      "refusal32": {"cases": 32, "classifier_bypass": 32, "refusal": 0, "garbled": 0, "empty": 0},
-      "cyber": {"cases": 22, "classifier_bypass": 22, "refusal": 0, "garbled": 0, "empty": 0}
-    },
-    "thinking_on": {
-      "max_tokens": 1024,
-      "refusal32": {"cases": 32, "classifier_bypass": 25, "refusal": 7, "garbled": 0, "empty": 0, "source_sha256": "7d90adf093c7e7f1e866e5e09c39c91ea1adab2dd417f202547fa97674200d4b"},
-      "cyber": {"cases": 22, "classifier_bypass": 16, "refusal": 1, "garbled": 2, "empty": 3, "source_sha256": "69094b939168f2eb3f588523a89a4cc1c21ed4595be983a0f42f1faa432169ab"}
-    },
-    "prior_l68t_thinking_off": {"refusal32": 11, "cyber": 15},
-    "stock_arvq": {"refusal32": 5, "cyber": 9}
+    "stock_mopd_c3_thinking_off": {"refusal32": 5, "cyber": 6}
   }
 }

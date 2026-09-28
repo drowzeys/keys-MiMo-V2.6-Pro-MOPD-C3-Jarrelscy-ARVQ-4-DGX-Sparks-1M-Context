@@ -3,10 +3,10 @@
 #   launch-rank.sh <this-node-ip> <rank 0-3> <roce-gid-index> <host-checkpoint-path> [api|headless]
 #
 # HOSTPATH is a complete checkpoint tree all four nodes can read. Pick one:
-#   MOPD C3 stock:     drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21
-#   MOPD C3 ablit:     drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated
-#   RL ablit (non-MOPD): drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated
+#   MOPD C3 ablit (default): drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated
+#   MOPD C3 stock:           drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21
 # Candidate trees that symlink into a stock 63430f7 base also need BASE_MOUNT.
+# Image is the prebuilt GHCR v4 runtime (do not rebuild).
 #
 # Champion defaults (override with env):
 #   MAXLEN=1048576 SEQS=4 BATCHED=5120 LM_ONLY=1

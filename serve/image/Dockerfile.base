@@ -1,6 +1,7 @@
 # ARVQ base: Jarrelscy vllm-mimo-v26-arvq-sm120 @ 88c9423 compiled for GB10 (sm_121a) on a local
 # GB10 vLLM build. Tag the result mimo26-arvq-base:63430f7-sm121. Most users should just pull
-# ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:latest instead of rebuilding.
+# the prebuilt ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:latest (C3-ablit / C3 stock runtime)
+# instead of rebuilding.
 FROM vllm-node-tf5-glm52-b12x:probe-modded
 
 USER root

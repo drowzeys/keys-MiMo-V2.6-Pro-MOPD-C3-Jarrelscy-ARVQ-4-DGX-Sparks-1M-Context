@@ -1,5 +1,5 @@
 # ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v4 (also :latest)
-# The only supported image. Pull it; rebuild only if you must.
+# Prebuilt runtime for MOPD C3-ablit and C3 stock. Pull it; do not rebuild.
 #
 # On top of the ARVQ base (Dockerfile.base):
 #   mimo_v2.py            Spark loader fixes; ablit capture hooks gated at import
