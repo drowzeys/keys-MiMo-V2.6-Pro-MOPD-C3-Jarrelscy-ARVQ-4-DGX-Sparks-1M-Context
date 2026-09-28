@@ -50,15 +50,17 @@ All candidates use FP8 attention `o_proj` (SPARK-PORT.md §9) and image v4 with 
 
 ## Quality
 
-[`mopd/qeval.py`](mopd/qeval.py) runs greedy with thinking off, on fixed samples. HumanEval completions are executed against the official tests. The ± figures are 95% margins.
+[`mopd/qeval.py`](mopd/qeval.py) runs greedy with thinking off, on fixed samples. HumanEval completions are executed against the official tests. The ± figures are paired 95% margins on the same items (2026-09-28).
 
 | | C1 | **C3** | C3 − C1 |
 |---|---:|---:|---:|
-| GSM8K (400) | 93.2% | **96.8%** | +3.5 ± 3.0 |
-| HumanEval (164) | 92.1% | **93.9%** | +1.8 ± 5.5 |
-| MMLU-Pro (500) | 72.2% | **77.4%** | +5.2 ± 5.4 |
+| GSM8K (400) | 93.2% (373) | **96.8% (387)** | +3.5 ± 2.1 |
+| HumanEval (164) | 92.1% (151) | **93.9% (154)** | +1.8 ± 4.3 |
+| MMLU-Pro (500) | 72.2% (361) | **77.4% (387)** | +5.2 ± 3.0 |
 
-C3's NLL on our RL on-policy held-out text rises from 0.475 to 0.541. That is expected: C3 moves toward MOPD's distribution. The benchmarks above show it is not a quality loss.
+C3 MMLU-Pro robust score is **78.0%** (390/500). 15 of the 500 C3 answers, and 40 of the C1 answers, hit the 1536-token cap. One C1 HumanEval completion also hit the cap.
+
+C3's NLL on the RL on-policy held-out set (60 rows, 53,575 tokens) is **0.541**. C0 is 0.472 and C1 is 0.475. Per class, C0 → C3: code 0.260 → 0.314, list 0.385 → 0.455, reason 0.126 → 0.148, prose 0.697 → 0.772, essay 0.681 → 0.791. The rise is expected: C3 moves toward MOPD's distribution. The benchmarks above show it is not a quality loss.
 
 ## Speed and memory (MTP k=2, 512 tokens, temperature 1.0)
 

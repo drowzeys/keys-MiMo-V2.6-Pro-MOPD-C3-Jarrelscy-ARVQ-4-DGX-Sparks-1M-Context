@@ -18,7 +18,13 @@ Xiaomi's MOPD build fixes tool-call repetition. We carried it into the ARVQ stac
 |---|---|---:|---:|---:|
 | **MOPD C3 stock** | [hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) | **7.4% / 0.9%** | 5/32 · 6/22 | **24.2 / 32.2** |
 
-GSM8K 96.8 / HumanEval 93.9 / MMLU-Pro 77.4 are on this stock C3 tree.
+Quality on this stock C3 tree, greedy, thinking off, fixed samples (2026-09-28). Counts and the C1 comparison are in [MOPD.md](MOPD.md).
+
+| | Score |
+|---|---:|
+| GSM8K | **96.8%** (387/400) |
+| HumanEval | **93.9%** (154/164) |
+| MMLU-Pro | **77.4%** strict (387/500), **78.0%** robust (390/500) |
 
 ## Current status — 2026-09-28 UTC (image v4 + MOPD C3 stock)
 

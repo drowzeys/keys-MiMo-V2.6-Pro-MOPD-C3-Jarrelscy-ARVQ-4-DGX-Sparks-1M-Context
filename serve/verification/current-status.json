@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-09-28T13:35:00Z",
+  "updated_at_utc": "2026-09-28T22:13:04Z",
   "repo": "drowzeys/keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context",
   "weights": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21",
   "gated": false,
@@ -30,6 +30,14 @@
     "concurrent_4_aggregate_tps": 46.25,
     "prefill_9k5_tps": 883,
     "prefill_38k_tps": 1074
+  },
+  "quality_thinking_off": {
+    "gsm8k": {"correct": 387, "n": 400, "acc": 0.9675},
+    "humaneval": {"correct": 154, "n": 164, "acc": 0.939, "note": "official tests executed"},
+    "mmlu_pro": {"correct": 387, "n": 500, "acc": 0.774, "robust_correct": 390, "robust": 0.78, "truncated": 15},
+    "refusal32_bypass": "5/32",
+    "cyber_bypass": "6/22",
+    "heldout_nll": {"c0": 0.47207, "c1": 0.47518, "c3": 0.54137, "rows": 60, "tokens": 53575}
   },
   "tool_call_flags": [
     "--enable-auto-tool-choice",
