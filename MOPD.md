@@ -7,8 +7,7 @@ the RL model: the same call emitted many times in one turn. We carried it into J
 
 | | HF |
 |---|---|
-| **C3 ablit (default)** | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated) (gated; dealign `o_proj` on C3) |
-| C3 stock | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) (public, not abliterated) |
+| **C3 stock** | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) |
 
 `serve/launch-rank.sh` is the full-speed recipe. Candidate trees that symlink into stock 63430f7 also need `BASE_MOUNT`.
 
@@ -68,8 +67,7 @@ C3's NLL on our RL on-policy held-out text rises from 0.475 to 0.541. That is ex
 | | Prose | Code | 4 requests | Prefill 9.5K / 38K |
 |---|---:|---:|---:|---:|
 | C1 | 23.5 | 33.9 | 48.2 | 1,074 / 1,075 |
-| C3 stock (2026-09-28 live) | **24.2** | **32.2** | **46.3** | 883 / 1074 |
-| **C3 ablit (default, 2026-09-28 live)** | **23.7** | **33.0** | **45.2** | 974 / 1085 |
+| **C3 stock (2026-09-28 live)** | **24.2** | **32.2** | **46.3** | 883 / 1074 |
 
 - **C3's cost:** its extra NVFP4 experts add ~11 GiB of weights per rank. Decode drops ~5-8% because a 4-bit expert is more bytes to read than a 2-bit one.
 - **KV pool:** measured at 2,116,828 tokens on C0 and **1,282,005 tokens on C3** (weights 72.2 → 83.2 GiB per rank), which still fits the 1M context.
@@ -78,4 +76,4 @@ C3's NLL on our RL on-policy held-out text rises from 0.475 to 0.541. That is ex
 
 - **79% of experts still hold RL weights (2-bit cold set).** A full MOPD cold re-fit needs Jarrelscy's activation calibration and PV pipeline. Our fixed-codebook re-encoder in delta mode transferred only 11-14% of the MOPD update.
 - **Paths:** the scripts in `mopd/` are the ones we ran and keep our cluster paths (node IPs, `/home/keyspark/...`, the MOPD download location). Edit them before use.
-- **Abliteration is a separate tree.** Stock C3 is 5/32 · 6/22. C3-ablit (dealign FP8 `o_proj` L32–45/48–54/64–67) is **30/32 · 22/22** thinking off; leftover refuses 27 and 29. Tool-call repetition was not remeasured on the ablit tree.
+- **This repo publishes stock C3 only.** Refusal 5/32 · cyber 6/22 thinking off. Grafting dealign `o_proj` onto these weights brought the tool-call loop back, so that tree is not published.

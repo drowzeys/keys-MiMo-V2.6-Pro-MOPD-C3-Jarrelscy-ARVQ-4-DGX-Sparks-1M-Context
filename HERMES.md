@@ -1,8 +1,8 @@
 # Hermes and tool calling
 
-Status: **tool parsers on the live Abliterated serve; Hermes executes writes, shell, and code** so a prompt can build a project, not only describe one.
+Status: **tool parsers on the live MOPD C3 stock serve; Hermes executes writes, shell, and code** so a prompt can build a project, not only describe one.
 
-The checkpoint is the gated Abliterated tree. Thinking is **off** by default: Hermes sends `chat_template_kwargs.enable_thinking: false`, and since 2026-09-26 the server also defaults it off for clients that send nothing (the chat template itself turns thinking on when the kwarg is unset). Turn thinking on per request when you want it.
+The checkpoint is [hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21). The server defaults thinking **off** when a client sends nothing: Hermes sends `chat_template_kwargs.enable_thinking: false`, and since 2026-09-26 the server also defaults it off for clients that send nothing (the chat template itself turns thinking on when the kwarg is unset). Turn thinking on per request when you want it.
 
 ## Fixed 2026-09-26: never-ending tool-call loop
 
@@ -101,7 +101,7 @@ The pinned runtime provides both `mimo` parsers. All four ranks were recreated w
 | CLI toolset | `hermes-cli` |
 | Telegram toolset | `hermes-telegram` |
 
-The default model and delegation route use this Abliterated Pro checkpoint. Text auxiliary tasks (compression, approvals, web extraction) use `provider: main`. Restart `hermes-gateway` after config edits and use `/new` in existing chats.
+The default model and delegation route use this MOPD C3 stock checkpoint. Text auxiliary tasks (compression, approvals, web extraction) use `provider: main`. Restart `hermes-gateway` after config edits and use `/new` in existing chats.
 
 ## Verification
 

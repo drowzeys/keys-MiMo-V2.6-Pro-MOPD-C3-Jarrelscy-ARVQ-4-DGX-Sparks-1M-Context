@@ -1,11 +1,8 @@
-# keys-MiMo-V2.6-Pro-MOPD Jarrelscy ARVQ integration — 4 DGX Sparks, 1M context
+# keys-MiMo-V2.6-Pro-MOPD C3 stock — 4 DGX Sparks, 1M context
 
 Serving recipe for **[XiaomiMiMo/MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD)** in [Jarrelscy's ARVQ / NVFP4 hybrid](https://huggingface.co/jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid) on **four NVIDIA DGX Spark (GB10)** nodes, tensor-parallel 4, **1,048,576-token context**.
 
-**Default weights (one-shot): MOPD C3 abliterated** (gated, automatic approval after terms):
-**[drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated)**.
-
-Stock sibling (public, not abliterated):
+**Weights: MOPD C3 stock (hybrid-21):**
 **[drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21)**.
 
 Pull the **prebuilt** image. Do not rebuild it:
@@ -19,20 +16,18 @@ Xiaomi's MOPD build fixes tool-call repetition. We carried it into the ARVQ stac
 
 | Weights | HF | Tool-call dup / flood | Refusal / cyber (thinking off) | Prose / code tok/s |
 |---|---|---:|---:|---:|
-| **MOPD C3 ablit (default)** | [MOPD-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated) (gated) | not remeasured | **30/32 · 22/22** | **23.7 / 33.0** |
-| MOPD C3 stock | [hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) | **7.4% / 0.9%** | 5/32 · 6/22 | **24.2 / 32.2** |
+| **MOPD C3 stock** | [hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) | **7.4% / 0.9%** | 5/32 · 6/22 | **24.2 / 32.2** |
 
-GSM8K 96.8 / HumanEval 93.9 / MMLU-Pro 77.4 are on stock C3. C3-ablit leftover refuses: items 27 and 29.
+GSM8K 96.8 / HumanEval 93.9 / MMLU-Pro 77.4 are on this stock C3 tree.
 
-## Current status — 2026-09-28 UTC (image v4 + MOPD C3-ablit)
+## Current status — 2026-09-28 UTC (image v4 + MOPD C3 stock)
 
-- **Decode on live C3-ablit: 33.0 tok/s on code, 23.7 tok/s on prose**, single stream. Stock C3: 32.2 / 24.2. See [SPARK-PORT.md §9](SPARK-PORT.md#9-attention-o_proj-in-fp8-weights-update-2026-09-27) for FP8 `o_proj`.
-- **All three MTP draft heads run**, non-chain, in the V2 runner. On C3-ablit code, drafting accepts 2.70 tokens per pass at k=2.
-- **Prefill (C3-ablit): 974 tok/s at 9.5K, 1085 tok/s at 38K** (~35 s TTFT). NCCL drives both PCIe paths of the cabled CX-7 port; see [SPARK-PORT.md §10](SPARK-PORT.md#10-nccl-over-both-pcie-paths-of-the-cabled-cx-7-port-2026-09-27).
+- **Decode on live C3 stock: 32.2 tok/s on code, 24.2 tok/s on prose**, single stream. See [SPARK-PORT.md §9](SPARK-PORT.md#9-attention-o_proj-in-fp8-weights-update-2026-09-27) for FP8 `o_proj`.
+- **All three MTP draft heads run**, non-chain, in the V2 runner. On C3 stock code, drafting accepts 2.60 tokens per pass at k=2.
+- **Prefill (C3 stock): 883 tok/s at 9.5K, 1074 tok/s at 38K**. NCCL drives both PCIe paths of the cabled CX-7 port; see [SPARK-PORT.md §10](SPARK-PORT.md#10-nccl-over-both-pcie-paths-of-the-cabled-cx-7-port-2026-09-27).
 - **✅ Tool-call loop fixed.** Truncated tool batches return `finish_reason: "length"`, and the output cap is 8192. See [HERMES.md](HERMES.md#fixed-2026-09-26-never-ending-tool-call-loop).
 - **Safer defaults for clients that send nothing** (for example Pi): temperature 0.7 and thinking off unless requested. See [Clients](#clients).
-- **[Abliteration](ABLITERATION.md):** live serve is **MOPD C3-ablit**, thinking off **30/32** · **22/22**.
-- **Vision:** the live serve is text-only.
+- **Vision:** the live serve is text-only. This repo publishes stock MOPD C3 only.
 
 Canonical snapshot: [serve/verification/current-status.json](serve/verification/current-status.json).
 
@@ -45,7 +40,6 @@ The quantization is Jarrelscy's. Official MiMo-V2.6-Pro images read the source M
 | ARVQ / NVFP4 hybrid format | Jarrelscy | [jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid](https://huggingface.co/jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid) @ `63430f7b9c1b13f4bfca9e3bc3969ec0115d1a88` |
 | vLLM fork that loads `nvfp4_arvq_hybrid` | Jarrelscy | [jarrelscy/vllm-mimo-v26-arvq-sm120](https://github.com/jarrelscy/vllm-mimo-v26-arvq-sm120) @ `88c94233120247f275ec94baf21638321a930469` |
 | MOPD base model | Xiaomi MiMo | [XiaomiMiMo/MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD) |
-| MOPD C3 abliterated (default) | Keys | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated) |
 | MOPD C3 stock (hybrid-21) | Keys | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) |
 | Four-Spark serve, MTP measurement, Spark port notes, tool/build loop | Keys | this repo |
 
@@ -69,7 +63,7 @@ Jarrelscy marks full-model quality and SM120 / 1M serving as **unqualified**. Th
 | Served name | `MiMo-V2.6-Pro-ARVQ` |
 | Tool calls | `--enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo` (required; without these Hermes `tool_choice: auto` is HTTP 400) |
 | Server defaults | `--override-generation-config '{"max_new_tokens": 8192, "temperature": 0.7, "top_p": 0.95}'` and `--default-chat-template-kwargs '{"enable_thinking": false}'`. These apply only when a client sends no values of its own; see [Clients](#clients). |
-| Checkpoint | **MOPD C3-ablit** (default) or hybrid-21 stock. Same launcher and prebuilt image. |
+| Checkpoint | **MOPD C3 stock** (hybrid-21). |
 
 Measured KV pool on C3: **1,282,005 tokens**. Weights about **83.2 GiB per rank**. Still covers the 1M context.
 
@@ -79,14 +73,13 @@ Measured KV pool on C3: **1,282,005 tokens**. Weights about **83.2 GiB per rank*
 
 | Checkpoint | **Prose** | **Code** | Prose tok/pass | Code tok/pass | 4-wide agg | Prefill 9.5K / 38K |
 |---|---:|---:|---:|---:|---:|---:|
-| **C3-ablit (default)** | **23.7 tok/s** | **33.0 tok/s** | 1.89 | 2.70 | **45.2** | 974 / 1085 |
-| C3 stock | 24.2 tok/s | 32.2 tok/s | 1.91 | 2.60 | 46.3 | 883 / 1074 |
+| **C3 stock** | **24.2 tok/s** | **32.2 tok/s** | 1.91 | 2.60 | **46.3** | 883 / 1074 |
 
 Creative stories at temperature 1.0 are the hardest text to predict. Prefill slows as prompts grow because the 10 full-attention layers grow with context length. The batched ARVQ kernels give the big prefill gain. Driving both CX-7 PCIe paths adds 14–25% on BF16 weights; FP8 `o_proj` speeds decode. Single runs vary by roughly ±10% on GB10 (unified-memory page migration).
 
 ## Image (prebuilt — pull, do not rebuild)
 
-**`ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:latest`**, the same image as `:63430f7-sm121-v4`. Public, no login. This is the only supported runtime for MOPD C3 stock and C3-ablit. `serve/launch-rank.sh` pins `:63430f7-sm121-v4`.
+**`ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:latest`**, the same image as `:63430f7-sm121-v4`. Public, no login. This is the runtime for MOPD C3 stock. `serve/launch-rank.sh` pins `:63430f7-sm121-v4`.
 
 Digest `sha256:6c6b6aed088da63452ccc280cc0b88e3931ae7de5c27126053d0332b196769cf`.
 
@@ -96,9 +89,9 @@ The image contains:
 - **Expert-batched ARVQ prefill kernels** (`grouped.cu`, built during the image build).
 - The tool-call loop fix and torch.compile-clean abliteration hooks.
 
-The recipe is [`serve/image/Dockerfile`](serve/image/Dockerfile), built on [`Dockerfile.base`](serve/image/Dockerfile.base). A rebuild reproduces the published image file for file (17 checks). The image does not contain the weights — download C3-ablit or hybrid-21 separately.
+The recipe is [`serve/image/Dockerfile`](serve/image/Dockerfile), built on [`Dockerfile.base`](serve/image/Dockerfile.base). A rebuild reproduces the published image file for file (17 checks). The image does not contain the weights — download hybrid-21 separately.
 
-## Bring-up (one-shot = C3-ablit + prebuilt v4)
+## Bring-up (one-shot = C3 stock + prebuilt v4)
 
 You need four DGX Sparks on the 200G RoCE fabric. The launcher's defaults **are** the champion configuration:
 - prebuilt v4 image, MTP k=2 across all three heads, CUDA graphs
@@ -106,15 +99,12 @@ You need four DGX Sparks on the 200G RoCE fabric. The launcher's defaults **are*
 - tool-call loop fix and server sampling defaults
 
 ```bash
-# 1. Weights, on storage all four nodes can read.
-#    Default: MOPD C3 ablit (gated; accept the terms once):
-hf download drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated --local-dir /path/to/mimo-arvq
-#    Alternate: MOPD C3 stock (public, not abliterated):
-# hf download drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21 --local-dir /path/to/mimo-arvq
+# 1. Weights, on storage all four nodes can read. MOPD C3 stock:
+hf download drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21 --local-dir /path/to/mimo-arvq
 
 # 2. Recipe, on each node
-git clone https://github.com/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context
-cd keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context
+git clone https://github.com/drowzeys/keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context
+cd keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context
 export MASTER_ADDR=<rank-0 IP>
 
 # 3. Prebuilt image is pulled by launch-rank.sh (ghcr.io/drowzeys/mimo-v26-pro-arvq-spark:63430f7-sm121-v4)
@@ -125,21 +115,21 @@ bash serve/launch-rank.sh <this-node-IP> 0 <RoCE-GID-index> /path/to/mimo-arvq a
 
 `NCCL_IB_HCA` defaults to both RoCE devices of the cabled port (`rocep1s0f1,roceP2p1s0f1`). Check the names with `ibdev2netdev`: both should show the same port Up. The only per-node value you must set is the **RoCE GID index**: the IPv4 RoCE entry for the HCA, from `show_gids`. It was 3 on three of our Sparks and 7 on one. For code-heavy use, add `SPEC='{"method":"mtp","num_speculative_tokens":3}'`. NCCL uses the 200G RoCE NIC (`NCCL_NET=IB`). See [SPARK-PORT.md](SPARK-PORT.md) for the port notes.
 
-One-shot validation of this recipe on live C3-ablit (prebuilt GHCR image + `serve/launch-rank.sh` defaults, 2026-09-28):
+One-shot validation of this recipe on live C3 stock (prebuilt GHCR image + `serve/launch-rank.sh` defaults, 2026-09-28):
 
 | Measure | Result |
 |---|---:|
-| Prose | 23.7 tok/s |
-| Code | 33.0 tok/s |
-| 4 requests, aggregate | 45.2 tok/s |
-| 38K prefill | 1,085 tok/s |
+| Prose | 24.2 tok/s |
+| Code | 32.2 tok/s |
+| 4 requests, aggregate | 46.3 tok/s |
+| 38K prefill | 1,074 tok/s |
 
 ## Integration and experiments
 
 - **[MOPD](MOPD.md)** — MOPD integration: candidates C0–C3, tool-call repetition, quality and speed; build scripts in [`mopd/`](mopd/).
 - **[Hermes](HERMES.md)** — parsers, Hermes execution, and build-from-prompt (`write_file` + `terminal`).
 - **[DFlash](DFLASH.md)** — measured on the old eager build (13.0 tok/s prose). Slower than MTP. Not the champion.
-- **[Abliteration](ABLITERATION.md)** — MOPD C3-ablit 30/32 · 22/22 thinking off; stock C3 5/32 · 6/22.
+
 
 ## Clients
 

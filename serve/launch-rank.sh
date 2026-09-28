@@ -2,9 +2,8 @@
 # One rank of the four-Spark serve (image v4, full-speed C3 recipe).
 #   launch-rank.sh <this-node-ip> <rank 0-3> <roce-gid-index> <host-checkpoint-path> [api|headless]
 #
-# HOSTPATH is a complete checkpoint tree all four nodes can read. Pick one:
-#   MOPD C3 ablit (default): drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated
-#   MOPD C3 stock:           drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21
+# HOSTPATH is the MOPD C3 stock tree all four nodes can read:
+#   drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21
 # Candidate trees that symlink into a stock 63430f7 base also need BASE_MOUNT.
 # Image is the prebuilt GHCR v4 runtime (do not rebuild).
 #

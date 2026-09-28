@@ -1,11 +1,10 @@
 {
   "updated_at_utc": "2026-09-28T13:35:00Z",
-  "repo": "drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context",
-  "weights": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated",
-  "weights_stock_mopd": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21",
-  "gated": "auto",
+  "repo": "drowzeys/keys-MiMo-V2.6-Pro-MOPD-C3-Jarrelscy-ARVQ-4-DGX-Sparks-1M-Context",
+  "weights": "https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21",
+  "gated": false,
   "model": "MiMo-V2.6-Pro-ARVQ",
-  "checkpoint": "mopd-c3-ablit",
+  "checkpoint": "mopd-c3-stock",
   "base_model": "XiaomiMiMo/MiMo-V2.6-Pro-MOPD",
   "base_arvq_format": "jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid@63430f7",
   "serving": {
@@ -25,12 +24,12 @@
     "language_model_only": true
   },
   "speed_thinking_off": {
-    "label": "mopd-c3-ablit-0928",
-    "prose_tps": 23.7,
-    "code_tps": 32.95,
-    "concurrent_4_aggregate_tps": 45.2,
-    "prefill_9k5_tps": 973.8,
-    "prefill_38k_tps": 1085.3
+    "label": "mopd-c3-stock-0928",
+    "prose_tps": 24.2,
+    "code_tps": 32.17,
+    "concurrent_4_aggregate_tps": 46.25,
+    "prefill_9k5_tps": 883,
+    "prefill_38k_tps": 1074
   },
   "tool_call_flags": [
     "--enable-auto-tool-choice",
@@ -60,14 +59,5 @@
     "run_stdout": "42\n",
     "ok": true,
     "log": "serve/verification/tools-and-build.json"
-  },
-  "abliteration": {
-    "status": "live MOPD C3-ablit",
-    "edit": "decoder self_attn.o_proj FP8 transplant of dealign v3 layers 32-45, 48-54, 64-67 onto MOPD hybrid-21; skipped DFlash/pad/front anchors",
-    "thinking_off": {
-      "refusal32": {"cases": 32, "classifier_bypass": 30, "refusal": 2, "garbled": 0, "empty": 0, "leftover_items": [27, 29]},
-      "cyber": {"cases": 22, "classifier_bypass": 22, "refusal": 0, "garbled": 0, "empty": 0}
-    },
-    "stock_mopd_c3_thinking_off": {"refusal32": 5, "cyber": 6}
   }
 }
