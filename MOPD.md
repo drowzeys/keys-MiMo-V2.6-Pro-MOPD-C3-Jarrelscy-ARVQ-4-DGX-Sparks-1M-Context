@@ -3,8 +3,14 @@
 Xiaomi released [MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD) to fix tool-call repetition in
 the RL model: the same call emitted many times in one turn. We carried it into Jarrelscy's ARVQ / NVFP4 hybrid.
 
-**Weights: [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21)** (not abliterated).
-Same image (v4) and launcher (`serve/launch-rank.sh`) as the RL build; pass that tree as the checkpoint path.
+**Weights (same v4 launcher, GPU util 0.85):**
+
+| | HF |
+|---|---|
+| **C3 stock** | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) (public, not abliterated) |
+| **C3 ablit** | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated) (gated; dealign `o_proj` on C3) |
+
+`serve/launch-rank.sh` is the full-speed recipe. Candidate trees that symlink into stock 63430f7 also need `BASE_MOUNT`.
 
 ## What changed between RL and MOPD
 
@@ -63,7 +69,8 @@ C3's NLL on our RL on-policy held-out text rises from 0.475 to 0.541. That is ex
 |---|---:|---:|---:|---:|
 | RL abliterated champion | 24.5 | 34.1 | 48.5 | ~950-1,290 / ~1,040 |
 | C1 | 23.5 | 33.9 | 48.2 | 1,074 / 1,075 |
-| C3 | 23.2 | 31.3 | 46.1 | 1,047 / 1,032 |
+| C3 stock (2026-09-28 live) | **24.2** | **32.2** | **46.3** | 883 / 1074 |
+| C3 ablit (2026-09-28 live) | **23.7** | **33.0** | **45.2** | 974 / 1085 |
 
 - **C3's cost:** its extra NVFP4 experts add ~11 GiB of weights per rank. Decode drops ~5-8% because a 4-bit expert is more bytes to read than a 2-bit one.
 - **KV pool:** measured at 2,116,828 tokens on C0 and **1,282,005 tokens on C3** (weights 72.2 → 83.2 GiB per rank), which still fits the 1M context.
@@ -72,4 +79,4 @@ C3's NLL on our RL on-policy held-out text rises from 0.475 to 0.541. That is ex
 
 - **79% of experts still hold RL weights (2-bit cold set).** A full MOPD cold re-fit needs Jarrelscy's activation calibration and PV pipeline. Our fixed-codebook re-encoder in delta mode transferred only 11-14% of the MOPD update.
 - **Paths:** the scripts in `mopd/` are the ones we ran and keep our cluster paths (node IPs, `/home/keyspark/...`, the MOPD download location). Edit them before use.
-- **Not abliterated:** C3 has stock MOPD behaviour.
+- **Abliteration is a separate tree.** Stock C3 is 5/32 · 6/22. C3-ablit (dealign FP8 `o_proj` L32–45/48–54/64–67) is **30/32 · 22/22** thinking off; leftover refuses 27 and 29. Tool-call repetition was not remeasured on the ablit tree.

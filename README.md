@@ -6,16 +6,17 @@ Gated weights (automatic approval after terms): **[drowzeys/keys-MiMo-V2.6-Pro-R
 
 The launcher enables MiMo tool calling on the server (`--enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo`). Hermes then **executes** those calls (`write_file`, `terminal`, `execute_code`, `read_file`, …) so a prompt can write a project, run it, and iterate. See [HERMES.md](HERMES.md) and [`serve/verify-tools-and-build.sh`](serve/verify-tools-and-build.sh).
 
-## New 2026-09-28: MOPD build (recommended for agents and tool use)
+## New 2026-09-28: MOPD C3 (recommended; same full-speed v4 launcher)
 
-Xiaomi's [MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD) fixes tool-call repetition. We carried it into the ARVQ stack with a 21% NVFP4 hot set: **[drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21)**. It uses the same image and launcher. It is **not abliterated**. Details are in [MOPD.md](MOPD.md).
+Xiaomi's [MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD) fixes tool-call repetition. We carried it into the ARVQ stack with a 21% NVFP4 hot set. Same image (`:63430f7-sm121-v4`) and `serve/launch-rank.sh` defaults (MTP k=2, compile + CUDA graphs, 1M context, GPU util **0.85**). Details: [MOPD.md](MOPD.md).
 
-| | Turns with a repeated tool call | Flooding turns (32+ calls) | GSM8K | HumanEval | MMLU-Pro | Prose / code tok/s |
-|---|---:|---:|---:|---:|---:|---:|
-| RL abliterated (this repo's weights) | 53% | 9.0% | — | — | — | 24.5 / 34.1 |
-| **MOPD hybrid-21** | **7.4%** | **0.9%** | 96.8% | 93.9% | 77.4% | 23.2 / 31.3 |
+| Weights | HF | Tool-call dup / flood | Refusal / cyber (thinking off) | Prose / code tok/s |
+|---|---|---:|---:|---:|
+| **MOPD C3 stock** | [hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) | **7.4% / 0.9%** | 5/32 · 6/22 | **24.2 / 32.2** |
+| **MOPD C3 ablit** | [MOPD-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated) (gated) | not remeasured | **30/32 · 22/22** | **23.7 / 33.0** |
+| RL ablit (non-MOPD) | [RL-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated) (gated) | 53% / 9.0% | **32/32 · 22/22** | 24.5 / 34.1 |
 
-The abliterated RL build below stays available for uncensored use. An abliterated MOPD build is not published yet.
+GSM8K 96.8 / HumanEval 93.9 / MMLU-Pro 77.4 are on stock C3. C3-ablit leftover refuses: items 27 and 29.
 
 ## Current status — 2026-09-27 UTC (image v4 + FP8 o_proj weights)
 
@@ -24,7 +25,7 @@ The abliterated RL build below stays available for uncensored use. An abliterate
 - **Prefill: ~950–1,290 tok/s** (was 128). 38K-token time to first token: **~36 s** (was 302 s). NCCL now drives both PCIe paths of the one cabled CX-7 port; see [SPARK-PORT.md §10](SPARK-PORT.md#10-nccl-over-both-pcie-paths-of-the-cabled-cx-7-port-2026-09-27).
 - **✅ Tool-call loop fixed.** Truncated tool batches return `finish_reason: "length"`, and the output cap is 8192. See [HERMES.md](HERMES.md#fixed-2026-09-26-never-ending-tool-call-loop).
 - **Safer defaults for clients that send nothing** (for example Pi): temperature 0.7 and thinking off unless requested. See [Clients](#clients).
-- **[Abliteration](ABLITERATION.md):** live `dealign-op` tree. Thinking **off** **32/32** refusal and **22/22** cyber; thinking **on** 25/32 and 16/22 (visible content). Gated HF: [drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated).
+- **[Abliteration](ABLITERATION.md):** live serve is **MOPD C3-ablit** (thinking off **30/32** · **22/22**). RL dealign-op remains **32/32** · **22/22** thinking off.
 - **Vision:** the live serve is text-only.
 
 Canonical snapshot: [serve/verification/current-status.json](serve/verification/current-status.json) (thinking-off 32/32 · 22/22, thinking-on 25/32 · 16/22, live `write_file`+`terminal` build stdout 42). The earlier [2026-09-25-status.json](serve/verification/2026-09-25-status.json) is the pre-champion tool-parser check on l68t.
@@ -38,9 +39,10 @@ The quantization is Jarrelscy's. Official MiMo-V2.6-Pro images read the source M
 | ARVQ / NVFP4 hybrid checkpoint | Jarrelscy | [jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid](https://huggingface.co/jarrelscy/MiMo-V2.6-Pro-RL-ARVQ-hybrid) @ `63430f7b9c1b13f4bfca9e3bc3969ec0115d1a88` |
 | vLLM fork that loads `nvfp4_arvq_hybrid` | Jarrelscy | [jarrelscy/vllm-mimo-v26-arvq-sm120](https://github.com/jarrelscy/vllm-mimo-v26-arvq-sm120) @ `88c94233120247f275ec94baf21638321a930469` |
 | Base model | Xiaomi MiMo | [XiaomiMiMo/MiMo-V2.6-Pro-RL](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-RL) |
-| Abliterated ARVQ weights | Keys | [drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated) |
+| RL abliterated ARVQ weights | Keys | [drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated) |
 | MOPD base model | Xiaomi MiMo | [XiaomiMiMo/MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD) |
-| MOPD ARVQ hybrid-21 weights | Keys | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) |
+| MOPD C3 stock (hybrid-21) | Keys | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) |
+| MOPD C3 abliterated | Keys | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated) |
 | Four-Spark serve, MTP measurement, Spark port notes, tool/build loop | Keys | this repo |
 
 Jarrelscy marks full-model quality and SM120 / 1M serving as **unqualified**. The numbers below are a serving measurement on GB10 (SM121), not a quality claim.
@@ -63,7 +65,7 @@ Jarrelscy marks full-model quality and SM120 / 1M serving as **unqualified**. Th
 | Served name | `MiMo-V2.6-Pro-ARVQ` |
 | Tool calls | `--enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo` (required; without these Hermes `tool_choice: auto` is HTTP 400) |
 | Server defaults | `--override-generation-config '{"max_new_tokens": 8192, "temperature": 0.7, "top_p": 0.95}'` and `--default-chat-template-kwargs '{"enable_thinking": false}'`. These apply only when a client sends no values of its own; see [Clients](#clients). |
-| Checkpoint | abliterated tree `…-ablit-dealign-op` / gated HF repo above |
+| Checkpoint | MOPD C3-ablit (live) / hybrid-21 stock / RL dealign-op. Same launcher. |
 
 Measured KV pool on the champion boot: about **2.07M tokens** (three MTP heads now hold KV). Weights about **73.2 GiB per rank**.
 
@@ -121,9 +123,11 @@ You need four DGX Sparks on the 200G RoCE fabric. The launcher's defaults **are*
 
 ```bash
 # 1. Weights, on storage all four nodes can read. Pick one:
-#    MOPD hybrid-21 (tool-call repetition fixed, not abliterated):
+#    MOPD C3 ablit (gated; 30/32 · 22/22; same v4 launcher):
+hf download drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated --local-dir /path/to/mimo-arvq
+#    MOPD C3 stock (public; tool-call fix, not abliterated):
 hf download drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21 --local-dir /path/to/mimo-arvq
-#    or RL abliterated (gated repo: accept the terms once):
+#    RL ablit, non-MOPD (gated; 32/32 · 22/22):
 hf download drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated --local-dir /path/to/mimo-arvq
 
 # 2. Recipe, on each node
@@ -143,7 +147,7 @@ bash serve/launch-rank.sh <this-node-IP> 0 <RoCE-GID-index> /path/to/mimo-arvq a
 - **[MOPD](MOPD.md)** — MOPD integration: candidates C0–C3, tool-call repetition, quality and speed; build scripts in [`mopd/`](mopd/).
 - **[Hermes](HERMES.md)** — parsers, Hermes execution, and build-from-prompt (`write_file` + `terminal`).
 - **[DFlash](DFLASH.md)** — measured on the old eager build (13.0 tok/s prose). Slower than MTP. Not the champion.
-- **[Abliteration](ABLITERATION.md)** — live dealign-op: thinking-off 32/32 · 22/22; thinking-on 25/32 · 16/22.
+- **[Abliteration](ABLITERATION.md)** — MOPD C3-ablit 30/32 · 22/22; RL dealign-op 32/32 · 22/22 (thinking off).
 
 ## Clients
 

@@ -1,9 +1,12 @@
 #!/bin/bash
-# One rank of the four-Spark Abliterated champion (image v4, 2026-09-27).
+# One rank of the four-Spark serve (image v4, full-speed C3 recipe).
 #   launch-rank.sh <this-node-ip> <rank 0-3> <roce-gid-index> <host-checkpoint-path> [api|headless]
 #
-# HOSTPATH should be the Abliterated tree (…-ablit-dealign-op) or the gated HF download
-# drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated.
+# HOSTPATH is a complete checkpoint tree all four nodes can read. Pick one:
+#   MOPD C3 stock:     drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21
+#   MOPD C3 ablit:     drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-Abliterated
+#   RL ablit (non-MOPD): drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated
+# Candidate trees that symlink into a stock 63430f7 base also need BASE_MOUNT.
 #
 # Champion defaults (override with env):
 #   MAXLEN=1048576 SEQS=4 BATCHED=5120 LM_ONLY=1
@@ -73,6 +76,7 @@ exec docker run -d --name "$NAME" \
   --network host --ipc host --shm-size 16g --gpus all --privileged \
   --device /dev/infiniband:/dev/infiniband \
   -v "$HOSTPATH:$MODEL:ro" \
+  ${BASE_MOUNT:+-v "$BASE_MOUNT:/models/mimo-arvq-base:ro"} \
   -v /var/tmp/mimo-arvq-vllm-cache:/root/.cache/vllm \
   --entrypoint /bin/bash \
   -e VLLM_HOST_IP="$HEAD_IP" \
