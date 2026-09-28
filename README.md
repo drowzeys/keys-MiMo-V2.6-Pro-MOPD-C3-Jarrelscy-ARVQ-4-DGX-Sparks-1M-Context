@@ -6,6 +6,17 @@ Gated weights (automatic approval after terms): **[drowzeys/keys-MiMo-V2.6-Pro-R
 
 The launcher enables MiMo tool calling on the server (`--enable-auto-tool-choice --tool-call-parser mimo --reasoning-parser mimo`). Hermes then **executes** those calls (`write_file`, `terminal`, `execute_code`, `read_file`, …) so a prompt can write a project, run it, and iterate. See [HERMES.md](HERMES.md) and [`serve/verify-tools-and-build.sh`](serve/verify-tools-and-build.sh).
 
+## New 2026-09-28: MOPD build (recommended for agents and tool use)
+
+Xiaomi's [MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD) fixes tool-call repetition. We carried it into the ARVQ stack with a 21% NVFP4 hot set: **[drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21)**. It uses the same image and launcher. It is **not abliterated**. Details are in [MOPD.md](MOPD.md).
+
+| | Turns with a repeated tool call | Flooding turns (32+ calls) | GSM8K | HumanEval | MMLU-Pro | Prose / code tok/s |
+|---|---:|---:|---:|---:|---:|---:|
+| RL abliterated (this repo's weights) | 53% | 9.0% | — | — | — | 24.5 / 34.1 |
+| **MOPD hybrid-21** | **7.4%** | **0.9%** | 96.8% | 93.9% | 77.4% | 23.2 / 31.3 |
+
+The abliterated RL build below stays available for uncensored use. An abliterated MOPD build is not published yet.
+
 ## Current status — 2026-09-27 UTC (image v4 + FP8 o_proj weights)
 
 - **Decode: 34.1 tok/s on code, 24.5 tok/s on prose**, single stream (up from 18.6 prose on the old eager build). The latest step is FP8 attention `o_proj` weights: +12% decode with NLL +0.28%. See [SPARK-PORT.md §9](SPARK-PORT.md#9-attention-o_proj-in-fp8-weights-update-2026-09-27).
@@ -28,6 +39,8 @@ The quantization is Jarrelscy's. Official MiMo-V2.6-Pro images read the source M
 | vLLM fork that loads `nvfp4_arvq_hybrid` | Jarrelscy | [jarrelscy/vllm-mimo-v26-arvq-sm120](https://github.com/jarrelscy/vllm-mimo-v26-arvq-sm120) @ `88c94233120247f275ec94baf21638321a930469` |
 | Base model | Xiaomi MiMo | [XiaomiMiMo/MiMo-V2.6-Pro-RL](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-RL) |
 | Abliterated ARVQ weights | Keys | [drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated) |
+| MOPD base model | Xiaomi MiMo | [XiaomiMiMo/MiMo-V2.6-Pro-MOPD](https://huggingface.co/XiaomiMiMo/MiMo-V2.6-Pro-MOPD) |
+| MOPD ARVQ hybrid-21 weights | Keys | [drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21](https://huggingface.co/drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21) |
 | Four-Spark serve, MTP measurement, Spark port notes, tool/build loop | Keys | this repo |
 
 Jarrelscy marks full-model quality and SM120 / 1M serving as **unqualified**. The numbers below are a serving measurement on GB10 (SM121), not a quality claim.
@@ -107,7 +120,10 @@ You need four DGX Sparks on the 200G RoCE fabric. The launcher's defaults **are*
 - tool-call loop fix and server sampling defaults
 
 ```bash
-# 1. Weights (gated repo: accept the terms once), on storage all four nodes can read
+# 1. Weights, on storage all four nodes can read. Pick one:
+#    MOPD hybrid-21 (tool-call repetition fixed, not abliterated):
+hf download drowzeys/keys-MiMo-V2.6-Pro-MOPD-Jarrelscy-ARVQ-hybrid21 --local-dir /path/to/mimo-arvq
+#    or RL abliterated (gated repo: accept the terms once):
 hf download drowzeys/keys-MiMo-V2.6-Pro-RL-Jarrelscy-ARVQ-Abliterated --local-dir /path/to/mimo-arvq
 
 # 2. Recipe, on each node
@@ -124,6 +140,7 @@ bash serve/launch-rank.sh <this-node-IP> 0 <RoCE-GID-index> /path/to/mimo-arvq a
 
 ## Integration and experiments
 
+- **[MOPD](MOPD.md)** — MOPD integration: candidates C0–C3, tool-call repetition, quality and speed; build scripts in [`mopd/`](mopd/).
 - **[Hermes](HERMES.md)** — parsers, Hermes execution, and build-from-prompt (`write_file` + `terminal`).
 - **[DFlash](DFLASH.md)** — measured on the old eager build (13.0 tok/s prose). Slower than MTP. Not the champion.
 - **[Abliteration](ABLITERATION.md)** — live dealign-op: thinking-off 32/32 · 22/22; thinking-on 25/32 · 16/22.
