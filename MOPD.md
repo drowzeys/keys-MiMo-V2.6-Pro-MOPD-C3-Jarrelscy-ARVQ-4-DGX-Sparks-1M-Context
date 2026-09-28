@@ -44,7 +44,6 @@ All candidates use FP8 attention `o_proj` (SPARK-PORT.md §9) and image v4 with 
 | C2 | 16% | 2.5% | 35 | 335 | 4% |
 | **C3** | **7.4%** | **0.9%** | **7.6** | **152** | **1%** |
 
-- **Abliteration made looping worse:** stock RL 30% vs abliterated 53%.
 - **MOPD's non-expert weights do most of the fix (C1).**
 - **C2 does not beat C1 reliably.** The difference is within noise at this sample size.
 - **C3 is the best on every measure.**
